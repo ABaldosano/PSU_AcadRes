@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSU Academic Resource Management System</title>
+
+  <!-- Placeholder: External stylesheet -->
+  <link rel="stylesheet" href="index-style.css" />
+
+  <!-- Placeholder: Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+  <!-- Placeholder: jsPDF for export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+  <!-- Placeholder: External script -->
+  <script src="index-script.js" defer></script>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<body data-theme="light">
+
+  <!-- ================================================================
+       SECTION 1 — GLOBAL HEADER / NAVBAR
+       ================================================================ -->
+  <header class="top-navbar" role="banner">
+    <div class="nav-left">
+
+      <!-- Branding -->
+      <div class="brand">
+        <img
+          src="favicon.png"
+          alt="Palawan State University Logo"
+          class="psu-logo"
+          width="36"
+          height="36"
+          loading="lazy"
+        />
+        <div class="brand-text">
+          <span class="brand-title">PSU AcadRes</span>
+          <span class="brand-sub">Academic Resource Management System</span>
+        </div>
+      </div>
+
+      <!-- Primary Navigation (panel-switching, anchor-based placeholders) -->
+      <nav class="nav-menu" aria-label="Primary navigation">
+        <button class="nav-item active" type="button" data-panel="panel-dashboard"   aria-current="page">Dashboard</button>
+        <button class="nav-item"         data-panel="panel-upload"                          >Upload</button>
+        <button class="nav-item"         data-panel="panel-viewer"                          >Document Viewer</button>
+        <button class="nav-item"         data-panel="panel-admin"                           >Admin</button>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+
+      <!-- Role indicator -->
+      <div class="role-badge" aria-label="Current user role">
+        <span class="role-label">Role:</span>
+        <span class="role-value" id="activeRole">Student</span>
+      </div>
+
+      <!-- Theme toggle placeholder -->
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" type="button">
+        <span class="theme-icon">&#9789;</span>
+        <span class="theme-label">Theme</span>
+      </button>
+
+      <!-- User profile dropdown -->
+      <div class="dropdown" id="profileDropdown" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-label="User profile menu">
+        <img
+          src="https://media.istockphoto.com/id/2171382633/vector/user-profile-icon-anonymous-person-symbol-blank-avatar-graphic-vector-illustration.jpg?s=612x612&w=0&k=20&c=ZwOF6NfOR0zhYC44xOX06ryIPAUhDvAajrPsaZ6v1-w="
+          alt="User profile"
+          class="profile-pic"
+          width="36"
+          height="36"
+          loading="lazy"
+        />
+        <div class="dropdown-content" role="menu">
+          <button role="menuitem" type="button">Profile</button>
+          <button role="menuitem" type="button">My Resources</button>
+          <button role="menuitem" type="button">Settings</button>
+          <hr />
+          <button role="menuitem" type="button" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+
+  <!-- ================================================================
+       PANELS WRAPPER — all sections live here as switchable panels
+       ================================================================ -->
+  <div class="panels-wrapper">
+    <div class="panels-container">
+
+
+      <!-- ==============================================================
+           SECTION 2 — HERO / LANDING SECTION
+           ============================================================== -->
+      <section class="panel panel--hero active" id="panel-hero" aria-label="Landing hero">
+        <div class="hero-content">
+          <div class="hero-badge">AI-Powered Academic Platform</div>
+          <h1 class="hero-title">
+            Intelligent Academic Resource<br />
+            Management System
+          </h1>
+          <p class="hero-subtitle">
+            Palawan State University &mdash; College of Information Technology
+          </p>
+          <p class="hero-description">
+            Upload, organize, and deeply understand academic materials with the
+            help of AI-powered document summarization. Generate flashcards,
+            quizzes, key concepts, and simplified explanations&mdash;instantly.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn--primary" data-panel="panel-role-select" type="button">
+              Get Started
+            </button>
+            <button class="btn btn--secondary" data-panel="panel-dashboard" type="button">
+              Enter Dashboard
+            </button>
+          </div>
+
+          <!-- Feature highlights strip -->
+          <ul class="hero-features" aria-label="Key features">
+            <li class="hero-feature">
+              <span class="feature-icon" aria-hidden="true">&#128196;</span>
+              <span>Smart Summarization</span>
+            </li>
+            <li class="hero-feature">
+              <span class="feature-icon" aria-hidden="true">&#128279;</span>
+              <span>Subject Tagging</span>
+            </li>
+            <li class="hero-feature">
+              <span class="feature-icon" aria-hidden="true">&#129504;</span>
+              <span>AI Flashcards &amp; Quizzes</span>
+            </li>
+            <li class="hero-feature">
+              <span class="feature-icon" aria-hidden="true">&#128202;</span>
+              <span>Analytics Dashboard</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <!-- Placeholder for hero illustration / animated graphic -->
+          <div class="hero-visual-placeholder">
+            <span>&#127891;</span>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==============================================================
+           SECTION 3 — ROLE SELECTION
+           ============================================================== -->
+      <section class="panel panel--roles" id="panel-role-select" aria-label="Role selection">
+        <header class="panel-header">
+          <h2>Select Your Role</h2>
+          <p>Choose how you will be using the system. Your role determines your dashboard view and available actions.</p>
+        </header>
+
+        <div class="role-cards">
+
+          <div class="role-card" role="button" tabindex="0" data-role="student" aria-label="Select Student role">
+            <div class="role-card__icon" aria-hidden="true">&#127891;</div>
+            <h3 class="role-card__title">Student</h3>
+            <p class="role-card__desc">
+              Access uploaded materials, generate AI summaries, create flashcards,
+              and prepare for exams.
+            </p>
+            <ul class="role-card__perms" aria-label="Student permissions">
+              <li>Browse &amp; search materials</li>
+              <li>Upload personal documents</li>
+              <li>Generate summaries &amp; flashcards</li>
+              <li>Take AI-generated quizzes</li>
+            </ul>
+            <button class="btn btn--primary" type="button">Select Student</button>
+          </div>
+
+          <article class="role-card role-card--featured" role="button" tabindex="0" data-role="faculty" aria-label="Select Faculty role">
+            <div class="role-card__badge">Most Used</div>
+            <div class="role-card__icon" aria-hidden="true">&#128218;</div>
+            <h3 class="role-card__title">Faculty</h3>
+            <p class="role-card__desc">
+              Publish course materials, manage subject libraries, and review
+              AI-generated outputs for your students.
+            </p>
+            <ul class="role-card__perms" aria-label="Faculty permissions">
+              <li>Publish &amp; manage course materials</li>
+              <li>Review AI summaries</li>
+              <li>Organize subject repositories</li>
+              <li>View student engagement analytics</li>
+            </ul>
+            <button class="btn btn--primary" type="button">Select Faculty</button>
+          </article>
+
+          <div class="role-card" role="button" tabindex="0" data-role="admin" aria-label="Select Admin role">
+            <div class="role-card__icon" aria-hidden="true">&#9881;&#65039;</div>
+            <h3 class="role-card__title">Admin</h3>
+            <p class="role-card__desc">
+              Manage system-wide content, users, moderation, analytics, and
+              AI configuration.
+            </p>
+            <ul class="role-card__perms" aria-label="Admin permissions">
+              <li>Full system access</li>
+              <li>User &amp; role management</li>
+              <li>Content moderation</li>
+              <li>System analytics &amp; reports</li>
+            </ul>
+            <button class="btn btn--primary" type="button">Select Admin</button>
+          </div>
+
+        </div>
+      </section>
+
+
+      <!-- ==============================================================
+           SECTION 4 — MAIN DASHBOARD
+           ============================================================== -->
+      <section class="panel panel--dashboard" id="panel-dashboard" aria-label="Main dashboard">
+        <header class="panel-header">
+          <h2>Dashboard</h2>
+          <p>Welcome back. Here&rsquo;s your academic resource overview.</p>
+        </header>
+
+        <!-- Quick Stats Row -->
+        <div class="stats-row" aria-label="Quick statistics">
+          <article class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true">&#128196;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statTotalDocs">--</span>
+              <span class="stat-card__label">Total Documents</span>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true">&#129504;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statSummaries">--</span>
+              <span class="stat-card__label">AI Summaries Generated</span>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true">&#128218;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statSubjects">--</span>
+              <span class="stat-card__label">Subjects Tagged</span>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true">&#9889;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statFlashcards">--</span>
+              <span class="stat-card__label">Flashcards Created</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Main Dashboard Body -->
+        <div class="dashboard-body">
+
+          <!-- Left Column -->
+          <div class="dashboard-col dashboard-col--main">
+
+            <!-- Recent Materials -->
+            <section class="dash-widget" aria-label="Recent materials">
+              <div class="dash-widget__header">
+                <h3>Recent Materials</h3>
+                <button class="btn btn--ghost" type="button">View All</button>
+              </div>
+                <ul class="material-list" id="recentMaterialsList" aria-label="List of recently added materials">
+                                <!-- Populated dynamically by DashboardController -->
+                </ul>
+            </section>
+
+            <!-- Uploaded Files Quick View -->
+            <section class="dash-widget" aria-label="Uploaded files">
+              <div class="dash-widget__header">
+                <h3>My Uploads</h3>
+                <button class="btn btn--ghost" data-panel="panel-upload" type="button">Upload New</button>
+              </div>
+              <div class="upload-preview-list" id="myUploadsList">
+                <!-- Populated dynamically by DashboardController -->
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Right Column -->
+          <div class="dashboard-col dashboard-col--side">
+
+            <!-- Quick Actions -->
+            <section class="dash-widget" aria-label="Quick actions">
+              <div class="dash-widget__header">
+                <h3>Quick Actions</h3>
+              </div>
+              <div class="quick-actions">
+                <button class="quick-action-btn" data-panel="panel-upload" type="button">
+                  <span aria-hidden="true">&#11014;&#65039;</span> Upload Document
+                </button>
+                <button class="quick-action-btn" data-panel="panel-viewer" type="button">
+                  <span aria-hidden="true">&#129504;</span> Generate Summary
+                </button>
+                <button class="quick-action-btn" type="button">
+                  <span aria-hidden="true">&#9889;</span> Create Flashcards
+                </button>
+              </div>
+            </section>
+
+            <!-- AI Tools Panel -->
+            <section class="dash-widget" aria-label="AI tools">
+              <div class="dash-widget__header">
+                <h3>AI Tools</h3>
+                <span class="badge badge--ai">Powered by Ollama</span>
+              </div>
+              <ul class="ai-tool-list">
+                <li class="ai-tool-item">
+                  <span class="ai-tool-item__icon" aria-hidden="true">&#128196;</span>
+                  <div>
+                    <strong>Auto Summarize</strong>
+                    <p>Generate concise summaries from uploaded documents.</p>
+                  </div>
+                  <button class="btn btn--sm" type="button">Run</button>
+                </li>
+                <li class="ai-tool-item">
+                  <span class="ai-tool-item__icon" aria-hidden="true">&#128262;</span>
+                  <div>
+                    <strong>Flashcard Generator</strong>
+                    <p>Create study flashcards from key concepts.</p>
+                  </div>
+                  <button class="btn btn--sm" type="button">Run</button>
+                </li>
+                <li class="ai-tool-item">
+                  <span class="ai-tool-item__icon" aria-hidden="true">&#10067;</span>
+                  <div>
+                    <strong>Quiz Builder</strong>
+                    <p>Generate exam-style questions from materials.</p>
+                  </div>
+                  <button class="btn btn--sm" type="button">Run</button>
+                </li>
+              </ul>
+            </section>
+
+            <!-- Analytics Preview -->
+            <section class="dash-widget" aria-label="Analytics preview">
+              <div class="dash-widget__header">
+                <h3>Analytics</h3>
+                <button class="btn btn--ghost" type="button">Full Report</button>
+              </div>
+              <div class="analytics-chart-placeholder">
+                <canvas id="dashboardChart" aria-label="Dashboard analytics chart" role="img"></canvas>
+              </div>
+              <p class="chart-caption">Documents uploaded per subject &mdash; last 30 days</p>
+            </section>
+
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==============================================================
+           SECTION 5 — UPLOAD INTERFACE
+           ============================================================== -->
+      <section class="panel panel--upload" id="panel-upload" aria-label="Document upload interface">
+        <header class="panel-header">
+          <h2>Upload Document</h2>
+          <p>Upload academic materials for AI-powered summarization and tagging.</p>
+        </header>
+
+        <div class="upload-layout">
+
+          <!-- Upload Form Area -->
+          <div class="upload-form-area">
+
+            <!-- Drag & Drop Zone -->
+            <div class="dropzone" id="dropzone" role="region" aria-label="Drag and drop file upload area">
+              <div class="dropzone__inner">
+                <span class="dropzone__icon" aria-hidden="true">&#128228;</span>
+                <p class="dropzone__title">Drag &amp; Drop your file here</p>
+                <p class="dropzone__subtitle">Supports PDF, DOCX, PPTX, TXT &mdash; Max 50 MB</p>
+                <span class="dropzone__divider">or</span>
+                <label for="fileInput" class="btn btn--primary">
+                  Browse Files
+                  <input type="file" id="fileInput" name="fileInput" accept=".pdf,.docx,.pptx,.txt" class="sr-only" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Subject & Metadata Tagging -->
+            <fieldset class="upload-meta">
+              <legend>Document Details</legend>
+
+              <div class="form-group">
+                <label for="subjectTag">Subject / Course</label>
+                <input type="text" id="subjectTag" name="subjectTag" placeholder="e.g. CS202 – Data Structures" />
+              </div>
+
+              <div class="form-group">
+                <label for="yearLevel">Year Level</label>
+                <select id="yearLevel" name="yearLevel">
+                  <option value="">— Select Year Level —</option>
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="semester">Semester</label>
+                <select id="semester" name="semester">
+                  <option value="">— Select Semester —</option>
+                  <option value="1">1st Semester</option>
+                  <option value="2">2nd Semester</option>
+                  <option value="summer">Summer</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="docDescription">Brief Description (optional)</label>
+                <textarea id="docDescription" name="docDescription" rows="3" placeholder="What is this document about?"></textarea>
+              </div>
+            </fieldset>
+
+            <!-- AI Processing Mode Selector -->
+            <fieldset class="ai-mode-selector">
+              <legend>AI Processing Mode</legend>
+              <p class="ai-mode-selector__hint">
+                Choose how the AI should analyze your document after upload.
+              </p>
+
+              <div class="ai-mode-cards">
+
+                <label class="ai-mode-card" for="modeSimple">
+                  <input type="radio" id="modeSimple" name="aiMode" value="simple" checked />
+                  <div class="ai-mode-card__body">
+                    <span class="ai-mode-card__icon" aria-hidden="true">&#128161;</span>
+                    <strong>Simple</strong>
+                    <p>A concise, easy-to-read summary of the main points.</p>
+                  </div>
+                </label>
+
+                <label class="ai-mode-card" for="modeExam">
+                  <input type="radio" id="modeExam" name="aiMode" value="exam-focused" />
+                  <div class="ai-mode-card__body">
+                    <span class="ai-mode-card__icon" aria-hidden="true">&#128221;</span>
+                    <strong>Exam-Focused</strong>
+                    <p>Key concepts, important terms, and likely exam questions.</p>
+                  </div>
+                </label>
+
+                <label class="ai-mode-card" for="modeDetailed">
+                  <input type="radio" id="modeDetailed" name="aiMode" value="detailed" />
+                  <div class="ai-mode-card__body">
+                    <span class="ai-mode-card__icon" aria-hidden="true">&#128300;</span>
+                    <strong>Detailed</strong>
+                    <p>In-depth analysis, structured breakdown, and comprehensive notes.</p>
+                  </div>
+                </label>
+
+              </div>
+            </fieldset>
+
+            <!-- Upload Action -->
+            <div class="upload-actions">
+              <button class="btn btn--primary btn--lg" type="button" id="uploadBtn">
+                &#11014;&#65039; Upload &amp; Process with AI
+              </button>
+              <button class="btn btn--ghost" type="button">Clear</button>
+            </div>
+
+          </div>
+
+          <!-- File Preview Card -->
+          <aside class="upload-preview-panel" aria-label="Selected file preview">
+            <h3>File Preview</h3>
+            <div class="file-preview-card" id="filePreviewCard">
+              <div class="file-preview-card__empty">
+                <span aria-hidden="true">&#128196;</span>
+                <p>No file selected yet.<br />Your file preview will appear here.</p>
+              </div>
+              <!-- Populated by JS after file selection -->
+              <div class="file-preview-card__details hidden" id="filePreviewDetails">
+                <div class="file-preview-card__thumb" id="fileThumb" aria-hidden="true"></div>
+                <ul class="file-preview-card__meta">
+                  <li><span>Name:</span> <strong id="prevFileName">—</strong></li>
+                  <li><span>Type:</span> <strong id="prevFileType">—</strong></li>
+                  <li><span>Size:</span> <strong id="prevFileSize">—</strong></li>
+                  <li><span>AI Mode:</span> <strong id="prevAiMode">Simple</strong></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Upload Progress Placeholder -->
+            <div class="upload-progress" id="uploadProgress" aria-label="Upload progress">
+              <div class="upload-progress__bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="upload-progress__fill" id="uploadProgressFill"></div>
+              </div>
+              <span class="upload-progress__label" id="uploadProgressLabel">Ready to upload</span>
+            </div>
+
+          </aside>
+        </div>
+      </section>
+
+
+      <!-- ==============================================================
+           SECTION 6 — DOCUMENT VIEWER (Split Layout)
+           ============================================================== -->
+      <section class="panel panel--viewer" id="panel-viewer" aria-label="Document viewer">
+        <header class="panel-header">
+          <h2>Document Viewer</h2>
+          <p>Read original content and explore AI-generated outputs side-by-side.</p>
+        </header>
+
+        <!-- Viewer Document Selector -->
+        <div class="viewer-toolbar">
+          <label for="viewerDocSelect">Viewing:</label>
+          <select id="viewerDocSelect" name="viewerDocSelect">
+            <option value="">— Select a Document —</option>
+          </select>
+          <button class="btn btn--sm" type="button" id="reprocessBtn">&#129504; Re-process with AI</button>
+        </div>
+
+        <!-- Split Viewer Layout -->
+        <div class="viewer-split">
+
+          <!-- Left Panel: Original Document Text -->
+          <div class="viewer-pane viewer-pane--source" role="region" aria-label="Original document content">
+            <div class="viewer-pane__header">
+              <h3>Original Document</h3>
+              <button class="btn btn--icon" type="button" aria-label="Copy text">&#128203;</button>
+            </div>
+            <div class="viewer-pane__body" id="sourceDocBody">
+              <!-- Placeholder text content area -->
+              <div class="viewer-placeholder">
+                <span aria-hidden="true">&#128196;</span>
+                <p>Select a document above to load its content here.</p>
+              </div>
+              <!-- Populated by JS: extracted/original document text will appear here -->
+            </div>
+          </div>
+
+          <!-- Right Panel: AI Output Tabs -->
+          <div class="viewer-pane viewer-pane--ai" role="region" aria-label="AI-generated content">
+            <div class="viewer-pane__header">
+              <h3>AI Output</h3>
+              <!-- Tab controls -->
+              <div class="viewer-tabs" role="tablist" aria-label="AI output tabs">
+                <button class="viewer-tab active" role="tab" aria-selected="true"  data-tab="summary"    type="button">Summary</button>
+                <button class="viewer-tab"         role="tab" aria-selected="false" data-tab="flashcards" type="button">Flashcards</button>
+                <button class="viewer-tab"         role="tab" aria-selected="false" data-tab="quiz"       type="button">Quiz</button>
+              </div>
+            </div>
+
+            <div class="viewer-pane__body">
+
+              <!-- Tab: Summary -->
+              <div class="tab-panel tab-panel--active" id="tab-summary" role="tabpanel" aria-label="AI summary">
+                <div class="viewer-placeholder" id="summaryPlaceholder">
+                  <span aria-hidden="true">&#129504;</span>
+                  <p>AI summary will appear here after processing.</p>
+                </div>
+                <div class="summary-output hidden" id="summaryOutput">
+                  <!-- Populated by AI/JS -->
+                </div>
+              </div>
+
+              <!-- Tab: Flashcards -->
+              <div class="tab-panel" id="tab-flashcards" role="tabpanel" aria-label="AI flashcards" hidden>
+                <div class="flashcard-deck" id="flashcardDeck" aria-label="Flashcard deck">
+                  <!-- Flashcard items populated by JS -->
+                  <div class="viewer-placeholder">
+                    <span aria-hidden="true">&#128262;</span>
+                    <p>Flashcards will appear here after AI processing.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Quiz -->
+              <div class="tab-panel" id="tab-quiz" role="tabpanel" aria-label="AI quiz" hidden>
+                <div class="quiz-container" id="quizContainer">
+                  <div class="viewer-placeholder">
+                    <span aria-hidden="true">&#10067;</span>
+                    <p>AI-generated quiz questions will appear here.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+
+      <!-- ==============================================================
+           SECTION 7 — AI OUTPUT SECTION
+           ============================================================== -->
+      <section class="panel panel--ai-output" id="panel-ai-output" aria-label="AI output details">
+        <header class="panel-header">
+          <h2>AI Analysis Output</h2>
+          <p>Structured breakdown of the selected document&rsquo;s AI-processed content.</p>
+        </header>
+
+        <div class="ai-output-grid">
+
+          <!-- Key Concepts -->
+          <article class="ai-output-card" id="aiKeyConcepts">
+            <div class="ai-output-card__header">
+              <span class="ai-output-card__icon" aria-hidden="true">&#128273;</span>
+              <h3>Key Concepts</h3>
+              <button class="ai-output-card__toggle btn btn--icon" type="button"
+                      aria-expanded="true" aria-controls="keyConceptsBody"
+                      aria-label="Collapse Key Concepts">
+                &#9650;
+              </button>
+            </div>
+            <div class="ai-output-card__body" id="keyConceptsBody">
+              <ul class="concept-list" id="keyConceptsList">
+                <!-- Populated by AI processing -->
+              </ul>
+            </div>
+          </article>
+
+          <!-- Simplified Explanation -->
+          <article class="ai-output-card" id="aiSimplified">
+            <div class="ai-output-card__header">
+              <span class="ai-output-card__icon" aria-hidden="true">&#128161;</span>
+              <h3>Simplified Explanation</h3>
+              <button class="ai-output-card__toggle btn btn--icon" type="button"
+                      aria-expanded="true" aria-controls="simplifiedBody"
+                      aria-label="Collapse Simplified Explanation">
+                &#9650;
+              </button>
+            </div>
+            <div class="ai-output-card__body" id="simplifiedBody">
+              <div class="simplified-text" id="simplifiedText">
+                <!-- Populated by AI processing -->
+              </div>
+          </article>
+
+          <!-- Important Terms / Glossary -->
+          <article class="ai-output-card ai-output-card--full" id="aiImportantTerms">
+            <div class="ai-output-card__header">
+              <span class="ai-output-card__icon" aria-hidden="true">&#128218;</span>
+              <h3>Important Terms</h3>
+              <button class="ai-output-card__toggle btn btn--icon" type="button"
+                      aria-expanded="true" aria-controls="termsBody"
+                      aria-label="Collapse Important Terms">
+                &#9650;
+              </button>
+            </div>
+            <div class="ai-output-card__body" id="termsBody">
+              <dl class="terms-glossary" id="termsGlossary">
+                <!-- Populated by AI processing -->
+              </dl>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Export AI Output -->
+        <div class="ai-output-actions">
+          <button class="btn btn--primary" type="button" id="exportAiPDF">Export AI Output to PDF</button>
+          <button class="btn btn--secondary" type="button" id="copyAiOutput">Copy All Output</button>
+        </div>
+      </section>
+
+      <!-- ==============================================================
+           SECTION 9 — ADMIN DASHBOARD
+           ============================================================== -->
+      <section class="panel panel--admin" id="panel-admin" aria-label="Admin dashboard">
+        <header class="panel-header">
+          <h2>Admin Dashboard</h2>
+          <p>System-wide management, content moderation, and analytics overview.</p>
+        </header>
+
+        <!-- Admin Stats Row -->
+        <div class="stats-row" aria-label="Admin statistics">
+          <article class="stat-card stat-card--admin">
+            <span class="stat-card__icon" aria-hidden="true">&#128196;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="adminTotalFiles">--</span>
+              <span class="stat-card__label">Total Files Uploaded</span>
+            </div>
+          </article>
+          <article class="stat-card stat-card--admin">
+            <span class="stat-card__icon" aria-hidden="true">&#128218;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="adminTotalSubjects">--</span>
+              <span class="stat-card__label">Active Subjects</span>
+            </div>
+          </article>
+          <article class="stat-card stat-card--admin">
+            <span class="stat-card__icon" aria-hidden="true">&#128101;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="adminTotalUsers">--</span>
+              <span class="stat-card__label">Registered Users</span>
+            </div>
+          </article>
+          <article class="stat-card stat-card--admin">
+            <span class="stat-card__icon" aria-hidden="true">&#129504;</span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="adminAiRuns">--</span>
+              <span class="stat-card__label">AI Processes Run</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Admin Body -->
+        <div class="admin-body">
+
+          <!-- Left: Analytics Overview -->
+          <div class="admin-col admin-col--charts">
+
+            <section class="dash-widget" aria-label="Admin analytics overview">
+              <div class="dash-widget__header">
+                <h3>Analytics Overview</h3>
+                <select id="adminChartRange" name="adminChartRange">
+                  <option value="7">Last 7 Days</option>
+                  <option value="30" selected>Last 30 Days</option>
+                  <option value="90">Last 90 Days</option>
+                </select>
+              </div>
+              <div class="analytics-chart-placeholder">
+                <canvas id="adminAnalyticsChart" aria-label="Admin analytics chart" role="img"></canvas>
+              </div>
+            </section>
+
+            <!-- Subject Count Breakdown -->
+            <section class="dash-widget" aria-label="Subject breakdown">
+              <div class="dash-widget__header">
+                <h3>Documents per Subject</h3>
+              </div>
+              <div class="analytics-chart-placeholder">
+                <canvas id="adminSubjectChart" aria-label="Subject chart" role="img"></canvas>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Right: Moderation + File Management -->
+          <div class="admin-col admin-col--tables">
+
+            <!-- Moderation Panel -->
+            <section class="dash-widget" aria-label="Content moderation">
+              <div class="dash-widget__header">
+                <h3>Moderation Queue</h3>
+                <span class="badge badge--alert" id="moderationCount">3 pending</span>
+              </div>
+              <ul class="moderation-list" id="moderationList">
+                <!-- Moderation items populated from backend -->
+              </ul>
+            </section>
+
+            <!-- File Management Table -->
+            <section class="dash-widget" aria-label="File management">
+              <div class="dash-widget__header">
+                <h3>File Management</h3>
+                <input type="search" placeholder="Filter files…" id="adminFileFilter" aria-label="Filter files" />
+              </div>
+              <div class="table-wrapper">
+                <table id="adminFileTable" aria-label="Uploaded files table">
+                  <thead>
+                    <tr>
+                      <th scope="col">File Name</th>
+                      <th scope="col">Subject</th>
+                      <th scope="col">Uploaded By</th>
+                      <th scope="col">Size</th>
+                      <th scope="col">AI Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminFileTableBody">
+                    <!-- Populated dynamically by AdminController -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Pagination Placeholder -->
+              <div class="table-pagination">
+                <button class="btn btn--ghost btn--sm" type="button" disabled>&#8249; Previous</button>
+                <span id="adminTablePage">Page 1 of 1</span>
+                <button class="btn btn--ghost btn--sm" type="button">Next &#8250;</button>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </section>
+
+
+    </div><!-- /.panels-container -->
+  </div><!-- /.panels-wrapper -->
+
+
+  <!-- ================================================================
+       SECTION 10 — FOOTER
+       ================================================================ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/en/3/3b/Palawan_State_University_logo.png"
+          alt="PSU Logo"
+          width="32"
+          height="32"
+          loading="lazy"
+        />
+        <div>
+          <strong>PSU AcadRes</strong>
+          <span>Palawan State University &mdash; College of Information Technology</span>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <nav aria-label="Footer navigation">
+          <button class="footer-link" data-panel="panel-hero" type="button">Home</button>
+          <button class="footer-link" data-panel="panel-dashboard" type="button">Dashboard</button>
+          <button class="footer-link" data-panel="panel-upload" type="button">Upload</button>
+          <button class="footer-link" data-panel="panel-admin" type="button">Admin</button>
+        </nav>
+      </div>
+
+      <div class="footer-meta">
+        <p class="footer-disclaimer">
+          &#9888;&#65039; <strong>Prototype Disclaimer:</strong>
+          This is a functional prototype developed as part of an undergraduate thesis project
+          at Palawan State University. Data shown is for demonstration purposes only.
+        </p>
+        <p class="footer-thesis">
+          <strong>Thesis Context:</strong> Intelligent Academic Resource Management System
+          with AI-Powered Document Summarization &mdash; BSIT, Data Analytics &amp; E-Commerce, AY 2025&ndash;2026.
+        </p>
+        <p class="footer-ai-note">
+          &#129504; Powered by Ollama (local LLM) &mdash; Llama 3 / Mistral models via FastAPI backend.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2025&ndash;2026 Palawan State University &mdash; BSIT Department. All rights reserved.</p>
+      <p>Built by <strong>[Adviser Name]</strong> &bull; Thesis Adviser: <strong>[Adviser Name]</strong></p>
+    </div>
+  </footer>
+
+
+  <!-- ================================================================
+       SCREEN-READER ONLY UTILITY CLASS TARGETS
+       (sr-only class to be defined in CSS)
+       ================================================================ -->
+
+</body>
+</html>
