@@ -606,6 +606,19 @@ const StudyTimerController = {
     if (badge) { badge.style.display = 'none'; badge.textContent = '0:00'; }
   },
 
+  /** Discard session — no analytics recorded */
+  cancel() {
+    if (this._interval) clearInterval(this._interval);
+    this._interval = null;
+    this._elapsed  = 0;
+    this._docId    = null;
+    this._docName  = null;
+    const badge = document.getElementById('studyTimerBadge');
+    if (badge) { badge.style.display = 'none'; badge.textContent = '0:00'; }
+    document.getElementById('stopTimerBtn')?.style && (document.getElementById('stopTimerBtn').style.display = 'none');
+    document.getElementById('cancelStudyBtn')?.remove();
+  },
+
   _updateBadge() {
     const badge = document.getElementById('studyTimerBadge');
     if (!badge) return;
@@ -790,14 +803,17 @@ const AccessController = {
       });
     }
 
-    // Student
+    // Student — public_academic faculty docs filtered by student's year/semester
     return docs.filter(doc => {
       const vis       = doc.visibility  || '';
       const uploaderR = (doc.uploaderRole || doc.uploader_role || '').toLowerCase();
       const uploaderI = doc.uploaderId   || doc.uploader_id   || '';
       if (vis === 'private_faculty' || vis === 'private_admin') return false;
       if (uploaderR === 'student' && uploaderI !== sessionId)   return false;
-      if (uploaderI === sessionId && sessionId) return StudentProfileController.isDocAccessible(doc);
+      // Own uploads always visible regardless of year/sem tagging
+      if (uploaderI === sessionId && sessionId) return true;
+      // Faculty public_academic: enforce year/semester gating
+      if (vis === 'public_academic' && uploaderR === 'faculty') return StudentProfileController.isDocAccessible(doc);
       if (vis === 'public_academic') return StudentProfileController.isDocAccessible(doc);
       return false;
     });
@@ -844,13 +860,29 @@ apply(role) {
     if (visField) visField.style.display = (role === 'Faculty' || role === 'Admin') ? '' : 'none';
 
     const visEl = document.getElementById('uploadVisibility');
-    if (visEl && role === 'Admin') {
-      visEl.innerHTML = '<option value="private_admin">Private Admin Material (admin only)</option>';
-    } else if (visEl && role === 'Faculty') {
-      visEl.innerHTML = `
+      if (visEl && role === 'Admin') {
+        visEl.innerHTML = '<option value="private_admin">Private Admin Material (admin only)</option>';
+      } else if (visEl && role === 'Faculty') {
+        visEl.innerHTML = `
         <option value="public_academic">Public Academic Material (visible to all students &amp; faculty)</option>
         <option value="private_faculty">Private Faculty Material (visible to uploader &amp; admin only)</option>`;
-    }
+
+        // Show/hide year+semester fields based on visibility selection
+        const _syncFacultyYearSem = () => {
+          const isPublic = visEl.value === 'public_academic';
+          const ylf = document.getElementById('yearLevelField');
+          const smf = document.getElementById('semesterField');
+          if (ylf) ylf.style.display = isPublic ? '' : 'none';
+          if (smf) smf.style.display = isPublic ? '' : 'none';
+        };
+        _syncFacultyYearSem();
+        // Remove previous listener if re-applying role
+        const freshVis = visEl.cloneNode(true);
+        visEl.replaceWith(freshVis);
+        freshVis.addEventListener('change', _syncFacultyYearSem);
+        // Re-attach so the cloned element also syncs on first paint
+        freshVis.dispatchEvent(new Event('change'));
+      }
   },
 
   bindEvents() {
@@ -945,7 +977,7 @@ const PanelController = {
 
     if (panelId === 'dashboard') DashboardController.refresh();
     if (panelId === 'admin')     AdminController.refresh();
-    if (panelId !== 'viewer')    StudyTimerController.stop();
+    if (panelId !== 'viewer')    StudyTimerController.cancel();
   },
 
   _updateNavActiveState(panelId) {
@@ -1138,9 +1170,18 @@ const UploadController = {
     }
     if (AppState.isProcessing) return;
 
-    const subject   = document.getElementById('subjectTag')?.value.trim()  || 'Untagged';
-    const yearLevel = document.getElementById('yearLevel')?.value           || '';
-    const semester  = document.getElementById('semester')?.value            || '';
+    const subject = document.getElementById('subjectTag')?.value.trim() || 'Untagged';
+    const role    = AppState.role || 'Student';
+
+    // Students: always use their profile year/semester — never let them override
+    let yearLevel, semester;
+    if (role === 'Student') {
+      yearLevel = lsGet(LS.STUDENT_YEAR) || '';
+      semester  = lsGet(LS.STUDENT_SEM)  || '';
+    } else {
+      yearLevel = document.getElementById('yearLevel')?.value || '';
+      semester  = document.getElementById('semester')?.value  || '';
+    }
     const desc      = document.getElementById('docDescription')?.value.trim() || '';
     const aiMode    = document.querySelector('input[name="aiMode"]:checked')?.value || 'simple';
 
@@ -1162,7 +1203,6 @@ const UploadController = {
 
       const courseCode = document.getElementById('courseCode')?.value.trim()         || '';
       const competency = document.getElementById('learningCompetency')?.value.trim() || '';
-      const role       = AppState.role || 'Student';
       const sessionId  = AppState.sessionId || lsGet(LS.SESSION_ID) || 'unknown';
 
       let visibility = 'private_student';
@@ -1214,15 +1254,28 @@ const UploadController = {
       await ViewerController.refreshDocumentList();
 
       this._setProgressBar(100);
-      this._setProgressLabel('Upload complete!');
+      this._setProgressLabel('Upload complete! Starting AI processing…');
 
+      const uploadedFileName = this._file.name;
       this._clearUpload();
 
+      // Route to viewer and auto-select the new doc BEFORE AI processing
       PanelController.show('viewer');
       const sel = document.getElementById('viewerDocSelect');
-      if (sel) sel.value = fileId;
+      if (sel) {
+        sel.value = fileId;
+        // Trigger load to show doc metadata while AI runs
+        await ViewerController._loadDocument(fileId);
+      }
+
       showToast('File uploaded! AI is now processing…', 'success');
-      ActivityController.log(`Uploaded "${this._file.name}"`, 'upload');
+      ActivityController.log(`Uploaded "${uploadedFileName}"`, 'upload');
+
+      // Release upload-button lock before long AI call
+      AppState.isProcessing = false;
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI'; }
+
+      // Auto-trigger full AI pipeline immediately
       await ViewerController._triggerAiProcess(fileId);
 
     } catch (err) {
@@ -1230,7 +1283,6 @@ const UploadController = {
       showToast('Upload failed. Please try again.', 'error');
       this._setProgressLabel('Upload failed.');
       this._setProgressBar(0);
-    } finally {
       AppState.isProcessing = false;
       if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI'; }
     }
@@ -1399,20 +1451,24 @@ async refreshDocumentList() {
 
   async _loadDocument(docId) {
     if (!docId) return;
+
+    // Stop any active timer for previous doc (no analytics — user changed doc, not stopped)
+    StudyTimerController.cancel();
+
     const body = document.getElementById('sourceDocBody');
     if (!body) return;
 
-    // Clear all stale AI output from previous document
+    // Clear stale AI output
     const summaryPlaceholder = document.getElementById('summaryPlaceholder');
     const summaryOutput      = document.getElementById('summaryOutput');
     if (summaryPlaceholder) summaryPlaceholder.style.display = '';
     if (summaryOutput)      { summaryOutput.classList.add('hidden'); summaryOutput.innerHTML = ''; }
-    const flashcardDeck = document.getElementById('flashcardDeck');
-    if (flashcardDeck) flashcardDeck.innerHTML = '';
-    const quizContainer = document.getElementById('quizContainer');
-    if (quizContainer) quizContainer.innerHTML = '';
+    const flashcardDeck  = document.getElementById('flashcardDeck');
+    if (flashcardDeck)   flashcardDeck.innerHTML = '';
+    const quizContainer  = document.getElementById('quizContainer');
+    if (quizContainer)   quizContainer.innerHTML = '';
     const glossaryOutput = document.getElementById('glossaryOutput');
-    if (glossaryOutput) glossaryOutput.innerHTML = '';
+    if (glossaryOutput)  glossaryOutput.innerHTML = '';
     const quizFinal = document.getElementById('quizFinalResult');
     if (quizFinal) { quizFinal.style.display = 'none'; quizFinal.textContent = ''; }
     const confPanel = document.getElementById('confidenceRatingPanel');
@@ -1423,6 +1479,9 @@ async refreshDocumentList() {
     if (quizHistoryBar) quizHistoryBar.style.display = 'none';
 
     body.innerHTML = `<div style="padding:1rem;color:var(--text-secondary);"><p>Loading document…</p></div>`;
+
+    // Remove any existing study prompt in the AI pane
+    document.getElementById('studyTimerPrompt')?.remove();
 
     try {
       const response = await fetch(`${API.DOCUMENTS}/${encodeURIComponent(docId)}`);
@@ -1440,28 +1499,138 @@ async refreshDocumentList() {
         `Uploaded: ${doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : '—'}`,
       ].join('\n');
       body.innerHTML = `<div style="padding:1rem;line-height:1.8;white-space:pre-wrap;color:var(--text-primary);font-size:0.9rem;">${escapeHtml(metaLines)}</div>`;
-      // Render difficulty badge from existing data
-      if (doc.difficulty) {
-        this._renderDifficultyBadge(docId, doc.difficulty, doc.difficultyRationale || doc.difficulty_rationale);
-      } else {
-        const badge = document.getElementById('difficultyBadge');
-        if (badge) badge.style.display = 'none';
+
+      // Sync aiStatus
+      const localEntry = AppState.uploadedFiles.find(f => f.id === docId);
+      if (localEntry && doc.ai_status && localEntry.aiStatus !== doc.ai_status) {
+        localEntry.aiStatus = doc.ai_status;
+        AppState.saveUploads();
       }
 
-      if (doc.aiOutput?.summary)             this._renderSummary(doc.aiOutput.summary);
-      if (doc.aiOutput?.flashcards?.length)  this._renderFlashcards(doc.aiOutput.flashcards);
-      if (doc.aiOutput?.quiz?.length)        this._renderQuiz(doc.aiOutput.quiz);
-      if (doc.aiOutput?.glossary?.length)    this._renderGlossary(doc.aiOutput.glossary);
-      // Load quiz history for this document
-      this._loadQuizHistory(docId);
-      // Start study session timer
-      const docName = doc.filename || docId;
-      StudyTimerController.start(docId, docName);
+      const aiStatus = doc.ai_status || 'pending';
+
+      // If AI is still running, show processing message and block study UI
+      if (aiStatus === 'pending' || aiStatus === 'processing') {
+        this._showAiProcessingState(doc.filename || docId);
+        return;
+      }
+
+      // AI complete — render difficulty badge
+      if (doc.difficulty) {
+        this._renderDifficultyBadge(docId, doc.difficulty, doc.difficultyRationale || doc.difficulty_rationale);
+      }
+
+      // Show "Start Study Timer?" prompt before revealing AI outputs
+      this._showStudyTimerPrompt(docId, doc);
 
     } catch (err) {
       console.error('[Load Document Error]', err);
       body.innerHTML = `<div style="padding:1rem;color:var(--clr-danger-500);">Failed to load document. Is the backend running?</div>`;
     }
+  },
+
+  _showAiProcessingState(docName) {
+    // Clear AI pane; show processing message
+    const summaryPlaceholder = document.getElementById('summaryPlaceholder');
+    const summaryOutput      = document.getElementById('summaryOutput');
+    if (summaryPlaceholder) summaryPlaceholder.style.display = 'none';
+    if (summaryOutput) { summaryOutput.classList.remove('hidden'); summaryOutput.innerHTML =
+      `<div style="padding:1.5rem;text-align:center;color:var(--text-secondary);">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:0.75rem;opacity:0.5;"><circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="2" fill="none"/><path d="M14 8v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <p style="margin:0;font-size:0.9rem;">AI is processing the uploaded file.</p>
+        <p style="margin:0.4rem 0 0;font-size:0.8rem;opacity:0.7;">Summary, flashcards, quiz, and glossary will appear when ready.</p>
+      </div>`; }
+  },
+
+  _showStudyTimerPrompt(docId, doc) {
+    const aiPane = document.querySelector('.viewer-pane--ai .viewer-pane__body');
+    if (!aiPane) return;
+
+    // Build prompt overlay at top of AI pane
+    const existing = document.getElementById('studyTimerPrompt');
+    if (existing) existing.remove();
+
+    const prompt = document.createElement('div');
+    prompt.id = 'studyTimerPrompt';
+    prompt.style.cssText = 'position:absolute;inset:0;z-index:10;background:var(--bg-surface);padding:0 1.5rem 4rem;display:flex;align-items:center;justify-content:center;';
+    prompt.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;gap:1.25rem;text-align:center;">
+        <div>
+          <p style="margin:0;font-weight:700;font-size:1rem;">Start Study Timer?</p>
+          <p style="margin:0.35rem 0 0;font-size:0.85rem;color:var(--text-secondary);">Timer tracks your study session analytics.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+          <button id="studyTimerStartBtn" class="btn btn--sm" type="button">Yes</button>
+          <button id="studyTimerCancelBtn" class="btn btn--sm" type="button">No</button>
+        </div>
+      </div>`;
+    aiPane.prepend(prompt);
+    aiPane.style.position = 'relative';
+
+    const startBtn  = document.getElementById('studyTimerStartBtn');
+    const cancelBtn = document.getElementById('studyTimerCancelBtn');
+
+    startBtn?.addEventListener('click', () => {
+      prompt.remove();
+      StudyTimerController.start(docId, doc.filename || docId);
+      this._showStudyControls(docId, doc);
+      // Now reveal AI outputs
+      this._renderAiOutputs(doc);
+    });
+
+    cancelBtn?.addEventListener('click', () => {
+      prompt.remove();
+      // Still show AI outputs, just no timer
+      this._renderAiOutputs(doc);
+    });
+  },
+
+  _showStudyControls(docId, doc) {
+    const badge   = document.getElementById('studyTimerBadge');
+    const stopBtn = document.getElementById('stopTimerBtn');
+    if (badge)   badge.style.display = '';
+
+    // Replace stop button with Stop Timer + Cancel Study
+    const timerArea = stopBtn?.parentElement;
+    if (timerArea) {
+      stopBtn.style.display = '';
+      // Add Cancel Study button if not already present
+      if (!document.getElementById('cancelStudyBtn')) {
+        const cancelStudy = document.createElement('button');
+        cancelStudy.id        = 'cancelStudyBtn';
+        cancelStudy.type      = 'button';
+        cancelStudy.className = 'btn btn--ghost btn--sm';
+        cancelStudy.style.fontSize = '0.75rem';
+        cancelStudy.textContent = '✕ Cancel Study';
+        timerArea.appendChild(cancelStudy);
+        cancelStudy.addEventListener('click', () => {
+          StudyTimerController.cancel();
+          cancelStudy.remove();
+          if (stopBtn) stopBtn.style.display = 'none';
+          if (badge)   badge.style.display   = 'none';
+        });
+      }
+    }
+
+    // Stop Timer logs analytics
+    const freshStop = stopBtn?.cloneNode(true);
+    if (freshStop && stopBtn) {
+      stopBtn.replaceWith(freshStop);
+      freshStop.addEventListener('click', () => {
+        StudyTimerController.stop();
+        freshStop.style.display = 'none';
+        if (badge) badge.style.display = 'none';
+        document.getElementById('cancelStudyBtn')?.remove();
+      });
+    }
+  },
+
+  _renderAiOutputs(doc) {
+    if (doc.aiOutput?.summary)            this._renderSummary(doc.aiOutput.summary);
+    if (doc.aiOutput?.flashcards?.length) this._renderFlashcards(doc.aiOutput.flashcards);
+    if (doc.aiOutput?.quiz?.length)       this._renderQuiz(doc.aiOutput.quiz);
+    if (doc.aiOutput?.glossary?.length)   this._renderGlossary(doc.aiOutput.glossary);
+    if (doc.id) this._loadQuizHistory(doc.id);
   },
 
 async _triggerAiProcess(docId) {
@@ -1493,12 +1662,21 @@ async _triggerAiProcess(docId) {
 
       const result = await ApiService.summarizeDocument(docId, aiMode);
 
-      if (result.summary)            this._renderSummary(result.summary);
-      if (result.flashcards?.length) this._renderFlashcards(result.flashcards);
-      if (result.quiz?.length)       this._renderQuiz(result.quiz);
-      if (result.glossary?.length)   this._renderGlossary(result.glossary);
-
+      // Cache result and show study timer prompt for the completed doc
       AppState.aiOutputCache[docId] = result;
+
+      // Show study timer prompt now that AI is done; clear processing message first
+      const sel = document.getElementById('viewerDocSelect');
+      if (sel && sel.value === docId) {
+        // Re-load doc to trigger proper study timer prompt with fresh AI data
+        await this._loadDocument(docId);
+      } else {
+        // Doc not currently selected — just render outputs silently
+        if (result.summary)            this._renderSummary(result.summary);
+        if (result.flashcards?.length) this._renderFlashcards(result.flashcards);
+        if (result.quiz?.length)       this._renderQuiz(result.quiz);
+        if (result.glossary?.length)   this._renderGlossary(result.glossary);
+      }
       // Cache difficulty on the local file entry
       const diffEntry = AppState.uploadedFiles.find(f => f.id === docId);
       if (diffEntry && result.difficulty) {
@@ -1527,7 +1705,7 @@ async _triggerAiProcess(docId) {
       showToast(`AI processing failed: ${msg}`, 'error');
     } finally {
       AppState.isProcessing = false;
-      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-1px;margin-right:0.3rem;"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M5 7.5l1.5 1.5 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Re-process with AI'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Re-process with AI'; }
     }
   },
 
@@ -1541,13 +1719,13 @@ async _triggerAiProcess(docId) {
     // Convert markdown headings and bullet points to styled HTML
     const html = text
       .replace(/^## (.+)$/gm, '<h3 style="margin:1.2rem 0 0.4rem;font-size:1rem;font-weight:700;color:var(--clr-primary-500,#1a5ef9);">$1</h3>')
-      .replace(/^- \*\*(.+?)\*\*:/gm, '<li style="margin-bottom:0.4rem;"><strong>$1:</strong>')
-      .replace(/^- (.+)$/gm, '<li style="margin-bottom:0.4rem;">$1</li>')
+      .replace(/^- \*\*(.+?)\*\*:/gm, '<li style="margin-bottom:0.4rem;margin-left:0.25rem;"><strong>$1:</strong>')
+      .replace(/^- (.+)$/gm, '<li style="margin-bottom:0.4rem;margin-left:0.25rem;">$1</li>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n{2,}/g, '</p><p style="margin:0.5rem 0;">')
       .replace(/\n/g, '<br>');
 
-    output.innerHTML = `<div class="summary-text" style="line-height:1.8;font-size:0.92rem;padding:0.5rem 0;"><p style="margin:0;">${html}</p></div>`;
+    output.innerHTML = `<div class="summary-text" style="line-height:1.8;font-size:0.92rem;padding:0.5rem 0.25rem;"><p style="margin:0;">${html}</p></div>`;
   },
 
 _renderFlashcards(cards) {
@@ -1745,7 +1923,7 @@ _copyOutput() {
     }
     const sorted = [...terms].sort((a, b) => a.term.localeCompare(b.term));
     container.innerHTML = `
-      <dl style="display:flex;flex-direction:column;gap:0.6rem;">
+      <dl style="display:flex;flex-direction:column;gap:0.6rem;padding-bottom:3rem;">
         ${sorted.map(t => `
           <div style="padding:0.75rem 1rem;border-radius:0.625rem;background:var(--bg-surface-2);border:1px solid var(--border-default);">
             <dt style="font-weight:700;font-size:0.92rem;color:var(--clr-primary-500,#1a5ef9);margin-bottom:0.2rem;">${escapeHtml(t.term)}</dt>
@@ -1769,8 +1947,13 @@ _copyOutput() {
   },
 
   async _buildPrintSheet(docId) {
-    const sheet = document.getElementById('printSheet');
-    if (!sheet) return;
+    // Use the body-level #printSheet (not the viewer panel one)
+    let sheet = document.getElementById('printSheet');
+    if (!sheet) {
+      sheet = document.createElement('div');
+      sheet.id = 'printSheet';
+      document.body.appendChild(sheet);
+    }
 
     // Always fetch fresh data from backend so print works after page reload
     let cached = AppState.aiOutputCache[docId] || null;
@@ -1783,15 +1966,18 @@ _copyOutput() {
           const json = await resp.json();
           const doc  = json.data || {};
           cached = doc.aiOutput || {};
-          if (!file.name) file = { name: doc.filename, subject: doc.subject };
+          if (!file.name) file = { name: doc.filename, subject: doc.subject, difficulty: doc.difficulty };
         }
       } catch { /* print with whatever is available */ }
     }
     cached = cached || {};
 
-    const subject = file.subject || 'Untagged';
+    const subject    = file.subject    || 'Untagged';
+    const difficulty = file.difficulty || cached.difficulty || '';
     let html = `<h1>${escapeHtml(file.name || docId)}</h1>`;
-    html += `<p class="ps-meta">Subject: ${escapeHtml(subject)} &bull; Printed: ${new Date().toLocaleDateString()}</p>`;
+    html += `<p class="ps-meta">Subject: ${escapeHtml(subject)}`;
+    if (difficulty) html += ` &bull; Difficulty: ${escapeHtml(difficulty)}`;
+    html += ` &bull; Generated: ${new Date().toLocaleDateString()} &bull; Printed: ${new Date().toLocaleString()}</p>`;
 
     if (cached.summary) {
       const printSummary = cached.summary
@@ -1822,12 +2008,20 @@ _copyOutput() {
       html += `<p style="color:#888;">No AI output available for this document yet. Run AI processing first.</p>`;
     }
 
+    // Inject into body-level sheet; CSS @media print hides everything else
     sheet.innerHTML = html;
-    sheet.style.display = '';
+    sheet.style.display = 'block';
+    sheet.removeAttribute('aria-hidden');
+
+    // Brief delay so DOM settles before browser print dialog opens
     setTimeout(() => {
       window.print();
-      sheet.style.display = 'none';
-    }, 150);
+      // After print dialog closes, hide the sheet again
+      setTimeout(() => {
+        sheet.style.display = 'none';
+        sheet.setAttribute('aria-hidden', 'true');
+      }, 500);
+    }, 120);
   },
 
   _renderDifficultyBadge(docId, difficulty, rationale) {
@@ -1993,7 +2187,7 @@ const DashboardController = {
     });
   },
 
-  _renderRecentMaterials() {
+  async _renderRecentMaterials() {
     const list = document.getElementById('recentMaterialsList');
     if (!list) return;
 
@@ -2001,6 +2195,24 @@ const DashboardController = {
       list.innerHTML = `<li style="padding:1rem;color:var(--text-secondary);font-size:0.875rem;">No materials uploaded yet.</li>`;
       return;
     }
+
+    // Sync aiStatus from backend for all local entries
+    try {
+      const resp = await fetch(API.DOCUMENTS);
+      if (resp.ok) {
+        const json = await resp.json();
+        const backendDocs = json.data?.documents || [];
+        let changed = false;
+        backendDocs.forEach(bd => {
+          const local = AppState.uploadedFiles.find(f => f.id === bd.id);
+          if (local && local.aiStatus !== bd.ai_status) {
+            local.aiStatus = bd.ai_status;
+            changed = true;
+          }
+        });
+        if (changed) AppState.saveUploads();
+      }
+    } catch { /* backend unavailable — use cached statuses */ }
 
     const typeIcon = { PDF: '[PDF]', DOCX: '[DOCX]', PPTX: '[PPTX]', TXT: '[TXT]' };
     const relativeTime = iso => {
@@ -2014,6 +2226,19 @@ const DashboardController = {
       return `${days} day${days !== 1 ? 's' : ''} ago`;
     };
 
+    const badgeHtml = status => {
+      switch (status) {
+        case 'summarized':
+          return `<span class="material-item__badge" style="background:#22c55e22;color:#15803d;border-color:#22c55e55;">Processed</span>`;
+        case 'processing':
+          return `<span class="material-item__badge material-item__badge--pending" style="background:#f59e0b22;color:#b45309;border-color:#f59e0b55;">Processing…</span>`;
+        case 'failed':
+          return `<span class="material-item__badge material-item__badge--pending" style="background:#ef444422;color:#b91c1c;border-color:#ef444455;">Failed</span>`;
+        default:
+          return `<span class="material-item__badge material-item__badge--pending">Pending AI</span>`;
+      }
+    };
+
     list.innerHTML = AppState.uploadedFiles.slice(0, 5).map(f => `
       <li class="material-item">
         <span class="material-item__icon" aria-hidden="true" style="font-size:0.7rem;font-weight:700;letter-spacing:-0.02em;opacity:0.6;">${typeIcon[f.type] || '[FILE]'}</span>
@@ -2021,9 +2246,7 @@ const DashboardController = {
           <span class="material-item__title">${escapeHtml(f.name)}</span>
           <span class="material-item__meta">${escapeHtml(f.subject || 'Untagged')} &bull; ${relativeTime(f.uploadedAt)}</span>
         </div>
-        <span class="material-item__badge ${f.aiStatus === 'summarized' ? '' : 'material-item__badge--pending'}">
-          ${f.aiStatus === 'summarized' ? 'Summarized' : 'Pending AI'}
-        </span>
+        ${badgeHtml(f.aiStatus)}
         ${f.difficulty ? `<span class="course-code-badge" title="${escapeHtml(f.difficultyRationale || '')}" style="margin-left:0.3rem;">${escapeHtml(f.difficulty)}</span>` : ''}
       </li>
     `).join('');
@@ -2051,10 +2274,25 @@ const DashboardController = {
           <span class="upload-preview-card__size">${escapeHtml(f.size)}</span>
         </div>
         <button class="btn btn--icon" type="button" aria-label="View document"
-                data-panel="viewer">&#128065;</button>
+                data-view-doc-id="${escapeHtml(f.id)}">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="7.5" cy="7.5" rx="6" ry="4.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="7.5" cy="7.5" r="1.75" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+        </button>
       </article>
     `).join('');
     list.innerHTML = items;
+
+    // Bind view buttons to auto-open doc in viewer
+    list.querySelectorAll('[data-view-doc-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const docId = btn.dataset.viewDocId;
+        PanelController.show('viewer');
+        const sel = document.getElementById('viewerDocSelect');
+        if (sel) {
+          sel.value = docId;
+          await ViewerController._loadDocument(docId);
+        }
+      });
+    });
   },
 
   _initChart() {
@@ -2098,6 +2336,111 @@ const DashboardController = {
         },
       },
     });
+  },
+};
+
+/* ============================================================
+   SECTION K2 — VIEW ALL UPLOADS MODAL + DELETE
+   ============================================================ */
+
+const ViewAllController = {
+
+  _pendingDeleteId: null,
+
+  bindEvents() {
+    document.getElementById('viewAllUploadsBtn')?.addEventListener('click', () => this._openModal());
+    document.getElementById('viewAllModalClose')?.addEventListener('click', () => this._closeModal());
+    document.getElementById('viewAllModal')?.addEventListener('click', e => {
+      if (e.target === document.getElementById('viewAllModal')) this._closeModal();
+    });
+    document.getElementById('deleteConfirmCancel')?.addEventListener('click', () => this._closeDeleteConfirm());
+    document.getElementById('deleteConfirmOk')?.addEventListener('click', () => this._executeDelete());
+  },
+
+  _openModal() {
+    const modal = document.getElementById('viewAllModal');
+    const list  = document.getElementById('viewAllUploadsList');
+    if (!modal || !list) return;
+
+    const files = AppState.uploadedFiles;
+    if (!files.length) {
+      list.innerHTML = `<li style="padding:1rem;color:var(--text-secondary);font-size:0.875rem;">No uploads yet.</li>`;
+    } else {
+      const relativeTime = iso => {
+        const diff = Date.now() - new Date(iso).getTime();
+        const m = Math.floor(diff / 60000);
+        const h = Math.floor(diff / 3600000);
+        const d = Math.floor(diff / 86400000);
+        if (m < 2) return 'just now';
+        if (m < 60) return `${m}m ago`;
+        if (h < 24) return `${h}h ago`;
+        return `${d}d ago`;
+      };
+      list.innerHTML = files.map(f => `
+        <li style="display:flex;align-items:center;gap:0.75rem;padding:0.7rem 0.85rem;border-radius:0.625rem;background:var(--bg-surface-2);border:1px solid var(--border-default);">
+          <span style="font-size:0.68rem;font-weight:700;opacity:0.6;min-width:2.5rem;">${escapeHtml(f.type || 'FILE')}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(f.name)}</div>
+            <div style="font-size:0.76rem;color:var(--text-secondary);">${escapeHtml(f.subject || 'Untagged')} &bull; ${relativeTime(f.uploadedAt)} &bull; ${escapeHtml(f.size || '')}</div>
+          </div>
+          <button type="button" class="view-all__delete-btn" data-file-id="${escapeHtml(f.id)}" aria-label="Delete ${escapeHtml(f.name)}"
+                  style="background:none;border:none;cursor:pointer;padding:0.25rem;color:var(--text-secondary);flex-shrink:0;opacity:0.65;transition:opacity 0.15s;">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 3.5h10M6 3.5V2h3v1.5M6 6.5v4M9 6.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <rect x="3.5" y="3.5" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4" fill="none"/>
+            </svg>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    list.querySelectorAll('.view-all__delete-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => { btn.style.opacity = '1'; btn.style.color = '#ef4444'; });
+      btn.addEventListener('mouseleave', () => { btn.style.opacity = '0.65'; btn.style.color = 'var(--text-secondary)'; });
+      btn.addEventListener('click', () => this._confirmDelete(btn.dataset.fileId));
+    });
+
+    modal.style.display = '';
+  },
+
+  _closeModal() {
+    const modal = document.getElementById('viewAllModal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  _confirmDelete(fileId) {
+    this._pendingDeleteId = fileId;
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) modal.style.display = '';
+  },
+
+  _closeDeleteConfirm() {
+    this._pendingDeleteId = null;
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  async _executeDelete() {
+    const fileId = this._pendingDeleteId;
+    if (!fileId) return;
+    this._closeDeleteConfirm();
+    this._closeModal();
+
+    // Remove from local state
+    AppState.uploadedFiles = AppState.uploadedFiles.filter(f => f.id !== fileId);
+    AppState.saveUploads();
+    DashboardController.refresh();
+    showToast('Upload deleted.', 'info');
+    ActivityController.log(`Deleted file ID: ${fileId}`, 'delete');
+
+    // Delete from backend
+    try {
+      const resp = await fetch(`${API.DOCUMENTS}/${encodeURIComponent(fileId)}`, { method: 'DELETE' });
+      if (!resp.ok) console.warn('[Delete] Backend:', resp.status);
+      await ViewerController.refreshDocumentList();
+    } catch (e) {
+      console.warn('[Delete] Backend unreachable:', e);
+    }
   },
 };
 
@@ -2452,11 +2795,26 @@ function initApp() {
   PanelController.bindEvents();
   UploadController.bindEvents();
   ViewerController.bindEvents();
+  ViewAllController.bindEvents();
   DropdownController.bindEvents();
   KeyboardController.bindEvents();
   AiToolsController.bindEvents();
   StudentProfileController.bindEvents();
   StudentSetupController.bindEvents();
+
+  // Hide year/semester upload fields for students — auto-filled from profile
+  const _applyUploadFieldVisibility = () => {
+    const isStudent = (AppState.role || 'Student') === 'Student';
+    const ylField  = document.getElementById('yearLevelField');
+    const semField = document.getElementById('semesterField');
+    if (ylField)  ylField.style.display  = isStudent ? 'none' : '';
+    if (semField) semField.style.display = isStudent ? 'none' : '';
+  };
+  _applyUploadFieldVisibility();
+  // Re-apply whenever role changes
+  document.querySelectorAll('.role-card').forEach(card => {
+    card.addEventListener('click', () => setTimeout(_applyUploadFieldVisibility, 50));
+  });
   PlannerController.render();
   ActivityController.render();
   document.getElementById('clearActivityBtn')?.addEventListener('click', () => ActivityController.clear());
@@ -2482,5 +2840,3 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
-
-
