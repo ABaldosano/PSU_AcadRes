@@ -95,7 +95,12 @@ def init_db() -> None:
                 file_size     INTEGER DEFAULT 0,
                 file_type     TEXT DEFAULT '',
                 ai_status     TEXT DEFAULT 'pending',
-                uploaded_at   TEXT NOT NULL
+                uploaded_at   TEXT NOT NULL,
+                course_code   TEXT DEFAULT '',
+                competency    TEXT DEFAULT '',
+                uploader_role TEXT DEFAULT 'student',
+                uploader_id   TEXT DEFAULT '',
+                visibility    TEXT DEFAULT 'private_student'
             );
 
             CREATE TABLE IF NOT EXISTS ai_outputs (
@@ -104,14 +109,59 @@ def init_db() -> None:
                 summary       TEXT DEFAULT '',
                 flashcards    TEXT DEFAULT '[]',
                 quiz          TEXT DEFAULT '[]',
+                glossary      TEXT DEFAULT '[]',
                 created_at    TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS quiz_attempts (
+                id                TEXT PRIMARY KEY,
+                document_id       TEXT NOT NULL,
+                score             INTEGER NOT NULL,
+                max_score         INTEGER NOT NULL,
+                confidence_rating INTEGER DEFAULT 0,
+                attempted_at      TEXT NOT NULL,
                 FOREIGN KEY (document_id) REFERENCES documents(id)
             );
 
             CREATE INDEX IF NOT EXISTS idx_docs_subject   ON documents(subject);
             CREATE INDEX IF NOT EXISTS idx_docs_status    ON documents(ai_status);
             CREATE INDEX IF NOT EXISTS idx_ai_doc_id      ON ai_outputs(document_id);
+            CREATE INDEX IF NOT EXISTS idx_quiz_doc_id    ON quiz_attempts(document_id);
         """)
+
+        # Migration-safe: add new columns if upgrading an existing database
+        for col, definition in [
+            ("course_code",   "TEXT DEFAULT ''"),
+            ("competency",    "TEXT DEFAULT ''"),
+            ("uploader_role", "TEXT DEFAULT 'student'"),
+            ("uploader_id",   "TEXT DEFAULT ''"),
+            ("visibility",    "TEXT DEFAULT 'private_student'"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE documents ADD COLUMN {col} {definition}")
+            except Exception:
+                pass
+
+        # ai_outputs migration
+        for col, definition in [
+            ("glossary", "TEXT DEFAULT '[]'"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE ai_outputs ADD COLUMN {col} {definition}")
+            except Exception:
+                pass
+
+        # documents difficulty migration
+        for col, definition in [
+            ("difficulty",           "TEXT DEFAULT ''"),
+            ("difficulty_rationale", "TEXT DEFAULT ''"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE documents ADD COLUMN {col} {definition}")
+            except Exception:
+                pass
+
     log.info("Database initialised at %s", DB_PATH)
 
 
@@ -229,7 +279,10 @@ def chunk_text(text: str, size: int = CHUNK_SIZE_CHARS, overlap: int = CHUNK_OVE
         chunk = text[start:end].strip()
         if chunk:
             chunks.append(chunk)
-        start = end - overlap
+        next_start = end - overlap
+        if next_start <= start:          # guard against infinite loop
+            next_start = end
+        start = next_start
 
     return chunks
 
@@ -256,14 +309,20 @@ async def pick_ollama_model() -> Optional[str]:
             if resp.status_code != 200:
                 return None
             data = resp.json()
-            available = {m["name"].split(":")[0] for m in data.get("models", [])}
-            log.info("Ollama models available: %s", available)
+            # Keep full names (e.g. "phi3:mini") AND base names (e.g. "phi3") for matching
+            raw_names  = {m["name"] for m in data.get("models", [])}
+            base_names = {n.split(":")[0] for n in raw_names}
+            all_names  = raw_names | base_names
+            log.info("Ollama models available: %s", raw_names)
             for preferred in OLLAMA_MODELS:
-                if preferred in available:
-                    return preferred
+                if preferred in all_names or preferred.split(":")[0] in all_names:
+                    # Return the full tag if it exists, else base name
+                    if preferred in raw_names:
+                        return preferred
+                    return preferred.split(":")[0]
             # Fallback: use whatever is available
-            if available:
-                return next(iter(available))
+            if raw_names:
+                return next(iter(raw_names))
     except Exception as exc:
         log.warning("Ollama health-check failed: %s", exc)
     return None
@@ -376,6 +435,36 @@ def build_quiz_prompt(text: str) -> str:
         JSON:
     """).strip()
 
+def build_glossary_prompt(text: str) -> str:
+    return textwrap.dedent(f"""
+        Extract up to 10 key academic terms from the text. Output ONLY a JSON array, nothing else.
+        Rules: use only terms that appear in the text, alphabetical order, one-sentence definitions.
+
+        [
+          {{"term": "Term Name", "definition": "One sentence definition."}}
+        ]
+
+        TEXT:
+        {text}
+
+        JSON:
+    """).strip()
+
+def build_difficulty_prompt(text: str) -> str:
+    return textwrap.dedent(f"""
+        Classify the academic difficulty of the following text. Choose ONE of:
+        Introductory, Intermediate, Advanced
+
+        Then write ONE sentence explaining why.
+
+        Respond ONLY in this exact JSON format, nothing else:
+        {{"difficulty": "Intermediate", "rationale": "The text assumes prior knowledge of algebra."}}
+
+        TEXT:
+        {text}
+
+        JSON:
+    """).strip()
 
 # ============================================================
 # AI PROCESSING PIPELINE
@@ -501,6 +590,41 @@ async def generate_quiz_from_chunks(chunks: list[str], model: str) -> list[dict]
     log.info("Quiz valid questions recovered: %d", len(valid))
     return valid[:10] if valid else _fallback_quiz()
 
+async def generate_glossary_from_chunks(chunks: list[str], model: str) -> list[dict]:
+    """Generate a key terms glossary from document text."""
+    combined = chunks[0][:1000]
+    prompt   = build_glossary_prompt(combined)
+    raw      = await ollama_generate(prompt, model, max_tokens=800)
+    log.info("Glossary raw output: %s", raw[:300])
+    terms    = parse_json_from_llm(raw)
+    valid    = []
+    for t in terms:
+        if not isinstance(t, dict): continue
+        term = str(t.get("term") or "").strip()
+        defn = str(t.get("definition") or "").strip()
+        if len(term) > 1 and len(defn) > 10:
+            valid.append({"term": term, "definition": defn})
+    valid.sort(key=lambda x: x["term"].lower())
+    return valid[:10]
+
+async def generate_difficulty_from_chunks(chunks: list[str], model: str) -> tuple[str, str]:
+    """Classify document difficulty using the LLM."""
+    combined = chunks[0][:800]
+    prompt   = build_difficulty_prompt(combined)
+    raw      = await ollama_generate(prompt, model, max_tokens=150)
+    raw      = re.sub(r"```(?:json)?|```", "", raw).strip()
+    try:
+        start = raw.find("{")
+        end   = raw.rfind("}")
+        if start != -1 and end != -1:
+            obj = json.loads(raw[start:end+1])
+            diff = str(obj.get("difficulty", "")).strip()
+            rat  = str(obj.get("rationale", "")).strip()
+            if diff in ("Introductory", "Intermediate", "Advanced"):
+                return diff, rat
+    except Exception:
+        pass
+    return "Intermediate", "Unable to classify difficulty automatically."
 
 def _fallback_flashcards() -> list[dict]:
     """Return generic flashcards when LLM output cannot be parsed."""
@@ -543,9 +667,10 @@ async def health_check():
     """Check backend and Ollama availability."""
     model = await pick_ollama_model()
     return ok({
-        "backend": "online",
-        "ollama":  "online" if model else "offline",
-        "model":   model or "none",
+        "backend":  "online",
+        "aiProvider": "online" if model else "offline",
+        "model":    model or "none",
+        "providerUrl": OLLAMA_BASE_URL,
     }, "Backend is running.")
 
 
@@ -553,12 +678,17 @@ async def health_check():
 
 @app.post("/api/upload", tags=["Documents"])
 async def upload_document(
-    file:        UploadFile = File(...),
-    subject:     str        = Form(default="Untagged"),
-    year:        str        = Form(default=""),
-    semester:    str        = Form(default=""),
-    desc:        str        = Form(default=""),
-    aiMode:      str        = Form(default="simple"),
+    file:          UploadFile = File(...),
+    subject:       str        = Form(default="Untagged"),
+    year:          str        = Form(default=""),
+    semester:      str        = Form(default=""),
+    desc:          str        = Form(default=""),
+    aiMode:        str        = Form(default="simple"),
+    course_code:   str        = Form(default=""),
+    competency:    str        = Form(default=""),
+    uploader_role: str        = Form(default="student"),
+    uploader_id:   str        = Form(default=""),
+    visibility:    str        = Form(default="private_student"),
 ):
     """
     Receive an uploaded file, validate it, store it,
@@ -592,28 +722,44 @@ async def upload_document(
     doc_id = f"doc-{uuid.uuid4().hex[:12]}"
     now    = datetime.datetime.utcnow().isoformat()
 
+    allowed_visibilities = {"private_student", "public_academic", "private_faculty", "private_admin"}
+    if visibility not in allowed_visibilities:
+        visibility = "private_student"
+    if uploader_role == "admin":
+        visibility = "private_admin"
+    if uploader_role == "student":
+        visibility = "private_student"
+
     with get_db() as conn:
         conn.execute(
             """INSERT INTO documents
                (id, filename, safe_filename, subject, year_level, semester,
-                description, ai_mode, file_size, file_type, ai_status, uploaded_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                description, ai_mode, file_size, file_type, ai_status, uploaded_at,
+                course_code, competency, uploader_role, uploader_id, visibility)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 doc_id, original_name, safe_name,
                 subject or "Untagged", year, semester,
                 desc, aiMode, len(content), ext.lstrip("."),
                 "pending", now,
+                course_code, competency,
+                uploader_role.lower(), uploader_id, visibility,
             ),
         )
 
     return ok(
         {
-            "fileId":    doc_id,
-            "filename":  original_name,
-            "subject":   subject,
-            "fileSize":  len(content),
-            "aiStatus":  "pending",
-            "uploadedAt": now,
+            "fileId":       doc_id,
+            "filename":     original_name,
+            "subject":      subject,
+            "fileSize":     len(content),
+            "aiStatus":     "pending",
+            "uploadedAt":   now,
+            "courseCode":   course_code,
+            "competency":   competency,
+            "uploaderRole": uploader_role,
+            "uploaderId":   uploader_id,
+            "visibility":   visibility,
         },
         "File uploaded successfully. AI processing queued.",
     )
@@ -662,12 +808,13 @@ async def _do_summarize(file_id: str, mode: str):
     if not doc_path.exists():
         return err("Document file not found on server.", 404)
 
-    # Check Ollama
+    # Check AI provider availability
     model = await pick_ollama_model()
     if not model:
         return err(
-            "Ollama is not running or no compatible model is installed. "
-            "Please start Ollama and ensure llama3 or mistral is available.",
+            "No AI model is available. "
+            "Please start Ollama and ensure at least one model from the preferred list "
+            f"({', '.join(OLLAMA_MODELS)}) is installed, or run: ollama pull llama3",
             503,
         )
 
@@ -697,17 +844,30 @@ async def _do_summarize(file_id: str, mode: str):
         )
 
     try:
-        summary    = await generate_summary_from_chunks(chunks, mode, model)
-        flashcards = await generate_flashcards_from_chunks(chunks, model)
-        quiz       = await generate_quiz_from_chunks(chunks, model)
+        summary              = await generate_summary_from_chunks(chunks, mode, model)
+        flashcards           = await generate_flashcards_from_chunks(chunks, model)
+        quiz                 = await generate_quiz_from_chunks(chunks, model)
+        glossary             = await generate_glossary_from_chunks(chunks, model)
+        difficulty, diff_rat = await generate_difficulty_from_chunks(chunks, model)
     except httpx.ConnectError:
         with get_db() as conn:
             conn.execute(
                 "UPDATE documents SET ai_status = 'failed' WHERE id = ?", (file_id,)
             )
         return err(
-            "Could not connect to Ollama. Make sure it is running at localhost:11434.",
+            f"Could not connect to the AI provider at {OLLAMA_BASE_URL}. "
+            "Make sure Ollama is running and a compatible model is installed.",
             503,
+        )
+    except httpx.TimeoutException:
+        with get_db() as conn:
+            conn.execute(
+                "UPDATE documents SET ai_status = 'failed' WHERE id = ?", (file_id,)
+            )
+        return err(
+            "AI request timed out. The document may be too large or the model too slow. "
+            "Try a shorter document or a faster model.",
+            504,
         )
     except Exception as exc:
         log.error("AI generation error for %s: %s", file_id, exc)
@@ -726,33 +886,89 @@ async def _do_summarize(file_id: str, mode: str):
         conn.execute("DELETE FROM ai_outputs WHERE document_id = ?", (file_id,))
         conn.execute(
             """INSERT INTO ai_outputs
-               (id, document_id, summary, flashcards, quiz, created_at)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+               (id, document_id, summary, flashcards, quiz, glossary, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 output_id, file_id,
                 summary,
                 json.dumps(flashcards),
                 json.dumps(quiz),
+                json.dumps(glossary),
                 now,
             ),
         )
         conn.execute(
-            "UPDATE documents SET ai_status = 'summarized' WHERE id = ?", (file_id,)
+            "UPDATE documents SET ai_status = 'summarized', difficulty = ?, difficulty_rationale = ? WHERE id = ?",
+            (difficulty, diff_rat, file_id),
         )
 
     log.info("AI output stored for document %s.", file_id)
 
     return ok(
         {
-            "fileId":     file_id,
-            "model":      model,
-            "summary":    summary,
-            "flashcards": flashcards,
-            "quiz":       quiz,
+            "fileId":              file_id,
+            "model":               model,
+            "summary":             summary,
+            "flashcards":          flashcards,
+            "quiz":                quiz,
+            "glossary":            glossary,
+            "difficulty":          difficulty,
+            "difficultyRationale": diff_rat,
         },
         "AI summarisation complete.",
     )
 
+# ---- Quiz Attempts ----
+
+class QuizAttemptPayload(BaseModel):
+    document_id:       str
+    score:             int
+    max_score:         int
+    confidence_rating: int = 0
+
+
+@app.post("/api/quiz-attempt", tags=["Quiz"])
+async def save_quiz_attempt(payload: QuizAttemptPayload):
+    """Record a student quiz attempt with optional confidence rating."""
+    attempt_id = f"qa-{uuid.uuid4().hex[:12]}"
+    now        = datetime.datetime.utcnow().isoformat()
+
+    with get_db() as conn:
+        conn.execute(
+            """INSERT INTO quiz_attempts
+               (id, document_id, score, max_score, confidence_rating, attempted_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (attempt_id, payload.document_id, payload.score,
+             payload.max_score, payload.confidence_rating, now),
+        )
+
+    return ok({"attemptId": attempt_id}, "Quiz attempt recorded.")
+
+
+@app.get("/api/quiz-attempts/{doc_id}", tags=["Quiz"])
+async def get_quiz_attempts(doc_id: str):
+    """Return all quiz attempts for a given document."""
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM quiz_attempts WHERE document_id = ? ORDER BY attempted_at ASC",
+            (doc_id,),
+        ).fetchall()
+
+    attempts = [dict(r) for r in rows]
+    if not attempts:
+        return ok({"attempts": [], "bestScore": 0, "latestScore": 0, "count": 0})
+
+    scores     = [a["score"] for a in attempts]
+    max_scores = [a["max_score"] for a in attempts]
+    best_pct   = round(max(s / m * 100 for s, m in zip(scores, max_scores)))
+    latest_pct = round(scores[-1] / max_scores[-1] * 100)
+
+    return ok({
+        "attempts":    attempts,
+        "bestScore":   best_pct,
+        "latestScore": latest_pct,
+        "count":       len(attempts),
+    })
 
 # ---- Re-process ----
 
@@ -818,16 +1034,96 @@ async def search_documents(
 # ---- Document list (for viewer dropdown) ----
 
 @app.get("/api/documents", tags=["Documents"])
-async def list_documents():
-    """Return all uploaded documents (for populating the viewer selector)."""
+async def list_documents(
+    role:        str = Query(default="student"),
+    uploader_id: str = Query(default=""),
+):
+    """Return documents filtered by caller role and visibility."""
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id, filename, subject, ai_status, uploaded_at FROM documents "
-            "ORDER BY uploaded_at DESC"
+            "SELECT id, filename, subject, ai_status, uploaded_at, "
+            "course_code, year_level, semester, uploader_role, uploader_id, visibility "
+            "FROM documents ORDER BY uploaded_at DESC"
         ).fetchall()
 
-    docs = [dict(r) for r in rows]
-    return ok({"documents": docs, "count": len(docs)})
+    all_docs = [dict(r) for r in rows]
+    r = (role or "student").lower()
+
+    if r == "admin":
+        filtered = all_docs
+    elif r == "faculty":
+        filtered = [
+            d for d in all_docs
+            if d.get("uploader_id") == uploader_id
+            or d.get("visibility") == "public_academic"
+            or (
+                d.get("uploader_role") == "faculty"
+                and d.get("visibility") not in ("private_faculty", "private_admin")
+            )
+        ]
+    else:
+        filtered = [
+            d for d in all_docs
+            if (d.get("uploader_id") == uploader_id and uploader_id)
+            or d.get("visibility") == "public_academic"
+        ]
+        filtered = [
+            d for d in filtered
+            if not (
+                d.get("uploader_role") == "student"
+                and d.get("uploader_id") != uploader_id
+            )
+        ]
+
+    return ok({"documents": filtered, "count": len(filtered)})
+
+
+# ---- Accessible documents by year/semester ----
+
+@app.get("/api/documents/accessible", tags=["Documents"])
+async def accessible_documents(
+    year_level:  str = Query(default=""),
+    semester:    str = Query(default=""),
+    uploader_id: str = Query(default=""),
+):
+    """
+    Return documents accessible to a student, enforcing visibility and ownership.
+    Students receive: own uploads + public_academic faculty uploads within year/sem range.
+    """
+    YEAR_ORDER = {"1": 1, "2": 2, "3": 3, "4": 4}
+    SEM_ORDER  = {"1": 1, "2": 2, "summer": 3}
+
+    student_year = YEAR_ORDER.get(year_level, 0)
+    student_sem  = SEM_ORDER.get(semester, 0)
+
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM documents ORDER BY uploaded_at DESC").fetchall()
+
+    accessible = []
+    for row in rows:
+        doc      = dict(row)
+        vis      = doc.get("visibility", "private_student")
+        doc_uid  = doc.get("uploader_id", "")
+        doc_role = (doc.get("uploader_role") or "student").lower()
+
+        if vis in ("private_admin", "private_faculty"):
+            continue
+        if doc_role == "student" and doc_uid != uploader_id:
+            continue
+
+        doc_year = YEAR_ORDER.get(doc.get("year_level", ""), 0)
+        doc_sem  = SEM_ORDER.get(doc.get("semester", ""), 0)
+
+        if doc_year == 0 or doc_sem == 0:
+            accessible.append(doc)
+            continue
+        if doc_year < student_year:
+            accessible.append(doc)
+            continue
+        if doc_year == student_year and doc_sem <= student_sem:
+            accessible.append(doc)
+
+    return ok({"documents": accessible, "count": len(accessible)})
 
 
 # ---- Document detail + AI output ----
@@ -854,13 +1150,13 @@ async def get_document(doc_id: str):
             "summary":    ai_out["summary"],
             "flashcards": json.loads(ai_out["flashcards"]),
             "quiz":       json.loads(ai_out["quiz"]),
+            "glossary":   json.loads(ai_out["glossary"] or "[]"),
             "createdAt":  ai_out["created_at"],
         }
+    result["difficulty"]          = result.get("difficulty", "")
+    result["difficultyRationale"] = result.get("difficulty_rationale", "")
 
     return ok(result)
-
-
-# ---- Delete document ----
 
 @app.delete("/api/documents/{doc_id}", tags=["Documents"])
 async def delete_document(doc_id: str):
@@ -878,8 +1174,9 @@ async def delete_document(doc_id: str):
             file_path.unlink()
             log.info("Deleted file: %s", file_path)
 
-        conn.execute("DELETE FROM ai_outputs  WHERE document_id = ?", (doc_id,))
-        conn.execute("DELETE FROM documents   WHERE id = ?",          (doc_id,))
+        conn.execute("DELETE FROM quiz_attempts WHERE document_id = ?", (doc_id,))
+        conn.execute("DELETE FROM ai_outputs    WHERE document_id = ?", (doc_id,))
+        conn.execute("DELETE FROM documents     WHERE id = ?",          (doc_id,))
 
     return ok({}, f"Document '{doc_id}' deleted successfully.")
 
@@ -908,15 +1205,21 @@ async def admin_stats():
 
     subject_breakdown = {r["subject"]: r["cnt"] for r in subject_rows}
 
+    with get_db() as conn:
+        role_rows = conn.execute(
+            "SELECT uploader_role, COUNT(*) as cnt FROM documents GROUP BY uploader_role"
+        ).fetchall()
+
+    role_breakdown = {(r["uploader_role"] or "unknown"): r["cnt"] for r in role_rows}
+
     return ok({
         "totalFiles":        total_files,
         "totalSubjects":     total_subjects,
-        "totalUsers":        1,          # prototype — no auth system
         "aiRuns":            ai_runs,
         "pendingDocuments":  pending,
         "subjectBreakdown":  subject_breakdown,
+        "roleBreakdown":     role_breakdown,
     })
-
 
 # ---- Admin: list all documents ----
 

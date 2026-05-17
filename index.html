@@ -45,11 +45,11 @@
       </div>
 
       <!-- Primary Navigation (panel-switching, anchor-based placeholders) -->
-      <nav class="nav-menu" aria-label="Primary navigation">
-        <button class="nav-item active" type="button" data-panel="panel-dashboard"   aria-current="page">Dashboard</button>
-        <button class="nav-item"         data-panel="panel-upload"                          >Upload</button>
-        <button class="nav-item"         data-panel="panel-viewer"                          >Document Viewer</button>
-        <button class="nav-item"         data-panel="panel-admin"                           >Admin</button>
+      <nav class="nav-menu" aria-label="Primary navigation" id="mainNav" style="display:none;">
+        <button class="nav-item" type="button" data-panel="panel-dashboard" data-nav="dashboard">Dashboard</button>
+        <button class="nav-item" type="button" data-panel="panel-upload" data-nav="upload">Upload</button>
+        <button class="nav-item" type="button" data-panel="panel-viewer" data-nav="viewer">Document Viewer</button>
+        <button class="nav-item nav-item--admin-only" type="button" data-panel="panel-admin" data-nav="admin" style="display:none;">Admin</button>
       </nav>
     </div>
 
@@ -82,9 +82,28 @@
           <button role="menuitem" type="button">My Resources</button>
           <button role="menuitem" type="button">Settings</button>
           <hr />
+          <!-- Student semester profile settings -->
+          <div class="student-only-profile" id="studentProfileFields" style="padding:0.5rem 1rem 0.25rem;">
+            <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">My Year Level</label>
+            <select id="profileYearLevel" style="width:100%;margin-bottom:0.4rem;padding:0.25rem 0.4rem;font-size:0.82rem;border:1px solid var(--border-default);border-radius:0.4rem;background:var(--bg-surface);color:var(--text-primary);">
+              <option value="">— Select —</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+            <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">Current Semester</label>
+            <select id="profileSemester" style="width:100%;padding:0.25rem 0.4rem;font-size:0.82rem;border:1px solid var(--border-default);border-radius:0.4rem;background:var(--bg-surface);color:var(--text-primary);">
+              <option value="">— Select —</option>
+              <option value="1">1st Semester</option>
+              <option value="2">2nd Semester</option>
+              <option value="summer">Summer</option>
+            </select>
+            <button type="button" id="saveStudentProfile" style="margin-top:0.5rem;width:100%;padding:0.3rem;font-size:0.8rem;" class="btn btn--primary btn--sm">Save</button>
+          </div>
+          <hr />
           <button role="menuitem" type="button" id="logoutBtn">Logout</button>
         </div>
-      </div>
 
     </div>
   </header>
@@ -117,29 +136,34 @@
           </p>
           <div class="hero-actions">
             <button class="btn btn--primary" data-panel="panel-role-select" type="button">
-              Get Started
-            </button>
-            <button class="btn btn--secondary" data-panel="panel-dashboard" type="button">
-              Enter Dashboard
+            Get Started
             </button>
           </div>
 
           <!-- Feature highlights strip -->
           <ul class="hero-features" aria-label="Key features">
             <li class="hero-feature">
-              <span class="feature-icon" aria-hidden="true">&#128196;</span>
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="2" y="5.5" width="9" height="1.5" rx="0.75" fill="currentColor"/><rect x="2" y="9" width="10" height="1.5" rx="0.75" fill="currentColor"/><rect x="2" y="12.5" width="7" height="1.5" rx="0.75" fill="currentColor"/></svg>
+              </span>
               <span>Smart Summarization</span>
             </li>
             <li class="hero-feature">
-              <span class="feature-icon" aria-hidden="true">&#128279;</span>
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 8a6 6 0 1 0 12 0A6 6 0 0 0 2 8Z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 5v3l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
               <span>Subject Tagging</span>
             </li>
             <li class="hero-feature">
-              <span class="feature-icon" aria-hidden="true">&#129504;</span>
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M5.5 7h5M5.5 9.5h3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+              </span>
               <span>AI Flashcards &amp; Quizzes</span>
             </li>
             <li class="hero-feature">
-              <span class="feature-icon" aria-hidden="true">&#128202;</span>
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="9" width="2.5" height="5" rx="0.75" fill="currentColor"/><rect x="5.5" y="6" width="2.5" height="8" rx="0.75" fill="currentColor"/><rect x="9.5" y="3.5" width="2.5" height="10.5" rx="0.75" fill="currentColor"/><rect x="13.5" y="1.5" width="1" height="12.5" rx="0.5" fill="currentColor" opacity="0.3"/></svg>
+              </span>
               <span>Analytics Dashboard</span>
             </li>
           </ul>
@@ -148,7 +172,7 @@
         <div class="hero-visual" aria-hidden="true">
           <!-- Placeholder for hero illustration / animated graphic -->
           <div class="hero-visual-placeholder">
-            <span>&#127891;</span>
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="8" y="10" width="48" height="44" rx="4" stroke="currentColor" stroke-width="2.5" fill="none" opacity="0.15"/><rect x="8" y="10" width="48" height="44" rx="4" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M18 26h28M18 34h20M18 42h24" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/><path d="M38 6l6 4-6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
         </div>
       </section>
@@ -166,7 +190,9 @@
         <div class="role-cards">
 
           <div class="role-card" role="button" tabindex="0" data-role="student" aria-label="Select Student role">
-            <div class="role-card__icon" aria-hidden="true">&#127891;</div>
+            <div class="role-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </div>
             <h3 class="role-card__title">Student</h3>
             <p class="role-card__desc">
               Access uploaded materials, generate AI summaries, create flashcards,
@@ -183,7 +209,9 @@
 
           <article class="role-card role-card--featured" role="button" tabindex="0" data-role="faculty" aria-label="Select Faculty role">
             <div class="role-card__badge">Most Used</div>
-            <div class="role-card__icon" aria-hidden="true">&#128218;</div>
+            <div class="role-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 20h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 9h6M9 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="17" y="7" width="6" height="17" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/></svg>
+            </div>
             <h3 class="role-card__title">Faculty</h3>
             <p class="role-card__desc">
               Publish course materials, manage subject libraries, and review
@@ -199,7 +227,9 @@
           </article>
 
           <div class="role-card" role="button" tabindex="0" data-role="admin" aria-label="Select Admin role">
-            <div class="role-card__icon" aria-hidden="true">&#9881;&#65039;</div>
+            <div class="role-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="3.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M14 4v3M14 21v3M4 14h3M21 14h3M6.34 6.34l2.12 2.12M19.54 19.54l2.12 2.12M6.34 21.66l2.12-2.12M19.54 8.46l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
             <h3 class="role-card__title">Admin</h3>
             <p class="role-card__desc">
               Manage system-wide content, users, moderation, analytics, and
@@ -219,7 +249,65 @@
 
 
       <!-- ==============================================================
-           SECTION 4 — MAIN DASHBOARD
+       SECTION 3b — STUDENT ACADEMIC STANDING SETUP
+       ============================================================== -->
+  <section class="panel panel--student-setup" id="panel-student-setup" aria-label="Student academic standing setup">
+    <header class="panel-header">
+      <h2>Academic Standing Setup</h2>
+      <p>Enter your current academic standing so the system can show you relevant materials.</p>
+    </header>
+
+    <div class="role-cards" style="max-width:520px;margin:0 auto;">
+      <div class="role-card" style="width:100%;">
+        <div class="role-card__icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        </div>
+        <h3 class="role-card__title">Student Profile</h3>
+        <p class="role-card__desc">This information determines which academic materials are accessible to you.</p>
+
+        <div class="form-group" style="margin-top:1rem;">
+          <label for="setupYearLevel">Year Level</label>
+          <select id="setupYearLevel" name="setupYearLevel" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
+            <option value="">— Select Year Level —</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top:0.75rem;">
+          <label for="setupYearStanding">Year Standing <span style="font-size:0.78rem;color:var(--text-secondary);">(for irregular students)</span></label>
+          <select id="setupYearStanding" name="setupYearStanding" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
+            <option value="">— Same as Year Level —</option>
+            <option value="1">1st Year Standing</option>
+            <option value="2">2nd Year Standing</option>
+            <option value="3">3rd Year Standing</option>
+            <option value="4">4th Year Standing</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top:0.75rem;">
+          <label for="setupSemester">Current Semester</label>
+          <select id="setupSemester" name="setupSemester" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
+            <option value="">— Select Semester —</option>
+            <option value="1">1st Semester</option>
+            <option value="2">2nd Semester</option>
+            <option value="summer">Summer</option>
+          </select>
+        </div>
+
+        <div style="margin-top:1.25rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <button class="btn btn--primary" type="button" id="confirmStudentSetupBtn">Confirm &amp; Enter Dashboard</button>
+          <button class="btn btn--ghost" type="button" id="backToRoleSelectBtn">← Back</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==============================================================
+       SECTION 4 — MAIN DASHBOARD
            ============================================================== -->
       <section class="panel panel--dashboard" id="panel-dashboard" aria-label="Main dashboard">
         <header class="panel-header">
@@ -230,31 +318,49 @@
         <!-- Quick Stats Row -->
         <div class="stats-row" aria-label="Quick statistics">
           <article class="stat-card">
-            <span class="stat-card__icon" aria-hidden="true">&#128196;</span>
+            <span class="stat-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M6.5 7h7M6.5 10.5h5M6.5 14h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="statTotalDocs">--</span>
               <span class="stat-card__label">Total Documents</span>
             </div>
           </article>
           <article class="stat-card">
-            <span class="stat-card__icon" aria-hidden="true">&#129504;</span>
+            <span class="stat-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M7 10.5l2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+
             <div class="stat-card__body">
               <span class="stat-card__value" id="statSummaries">--</span>
               <span class="stat-card__label">AI Summaries Generated</span>
             </div>
           </article>
           <article class="stat-card">
-            <span class="stat-card__icon" aria-hidden="true">&#128218;</span>
+            <span class="stat-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="11" height="16" rx="1.5" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M6.5 6.5h4M6.5 9.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="12" y="5" width="5" height="13" rx="1" stroke="currentColor" stroke-width="1.4" fill="none" opacity="0.5"/></svg>
+            </span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="statSubjects">--</span>
               <span class="stat-card__label">Subjects Tagged</span>
             </div>
           </article>
           <article class="stat-card">
-            <span class="stat-card__icon" aria-hidden="true">&#9889;</span>
+            <span class="stat-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 2L5 11h6l-2 7 8-9h-6l2-7z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" fill="none"/></svg>
+            </span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="statFlashcards">--</span>
               <span class="stat-card__label">Flashcards Created</span>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="11" r="7" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M10 7.5v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 2h4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            </span>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statTotalStudyTime">--</span>
+              <span class="stat-card__label">Total Study Time</span>
             </div>
           </article>
         </div>
@@ -299,13 +405,13 @@
               </div>
               <div class="quick-actions">
                 <button class="quick-action-btn" data-panel="panel-upload" type="button">
-                  <span aria-hidden="true">&#11014;&#65039;</span> Upload Document
+                  <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 9.5V2M4 5l3-3 3 3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span> Upload Document
                 </button>
                 <button class="quick-action-btn" data-panel="panel-viewer" type="button">
-                  <span aria-hidden="true">&#129504;</span> Generate Summary
+                  <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M5 7.5l1.5 1.5 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Generate Summary
                 </button>
                 <button class="quick-action-btn" type="button">
-                  <span aria-hidden="true">&#9889;</span> Create Flashcards
+                  <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1.5l1.5 4.5H14l-4 3 1.5 4.5L7 11l-4.5 2.5L4 9 0 6h5.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/></svg></span> Create Flashcards
                 </button>
               </div>
             </section>
@@ -318,7 +424,7 @@
               </div>
               <ul class="ai-tool-list">
                 <li class="ai-tool-item">
-                  <span class="ai-tool-item__icon" aria-hidden="true">&#128196;</span>
+                  <span class="ai-tool-item__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="2" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M5.5 6.5h7M5.5 9.5h5M5.5 12.5h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
                   <div>
                     <strong>Auto Summarize</strong>
                     <p>Generate concise summaries from uploaded documents.</p>
@@ -326,7 +432,7 @@
                   <button class="btn btn--sm" type="button">Run</button>
                 </li>
                 <li class="ai-tool-item">
-                  <span class="ai-tool-item__icon" aria-hidden="true">&#128262;</span>
+                  <span class="ai-tool-item__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M5.5 8.5h7M5.5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
                   <div>
                     <strong>Flashcard Generator</strong>
                     <p>Create study flashcards from key concepts.</p>
@@ -334,7 +440,7 @@
                   <button class="btn btn--sm" type="button">Run</button>
                 </li>
                 <li class="ai-tool-item">
-                  <span class="ai-tool-item__icon" aria-hidden="true">&#10067;</span>
+                  <span class="ai-tool-item__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M6.75 7a2.25 2.25 0 0 1 4.5 0c0 1.5-2.25 1.75-2.25 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="13" r="0.75" fill="currentColor"/></svg></span>
                   <div>
                     <strong>Quiz Builder</strong>
                     <p>Generate exam-style questions from materials.</p>
@@ -356,8 +462,31 @@
               <p class="chart-caption">Documents uploaded per subject &mdash; last 30 days</p>
             </section>
 
+            <!-- Activity Feed -->
+            <section class="dash-widget" aria-label="Activity feed">
+              <div class="dash-widget__header">
+                <h3>Activity Feed</h3>
+                <button class="btn btn--ghost btn--sm" type="button" id="clearActivityBtn">Clear Log</button>
+              </div>
+              <ul id="activityFeed" style="list-style:none;padding:0;margin:0;max-height:220px;overflow-y:auto;">
+                <!-- Populated by ActivityController -->
+              </ul>
+            </section>
+
           </div>
         </div>
+
+        <!-- Study Planner (full width below columns) -->
+        <section class="dash-widget" aria-label="Study planner" style="margin-top:1.5rem;">
+          <div class="dash-widget__header">
+            <h3>Study Planner</h3>
+            <span class="badge badge--ai">Track Progress</span>
+          </div>
+          <div id="plannerContainer">
+            <!-- Populated by PlannerController -->
+          </div>
+        </section>
+
       </section>
 
 
@@ -378,7 +507,7 @@
             <!-- Drag & Drop Zone -->
             <div class="dropzone" id="dropzone" role="region" aria-label="Drag and drop file upload area">
               <div class="dropzone__inner">
-                <span class="dropzone__icon" aria-hidden="true">&#128228;</span>
+                <span class="dropzone__icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 26V10M13 17l7-7 7 7" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 30v2a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
                 <p class="dropzone__title">Drag &amp; Drop your file here</p>
                 <p class="dropzone__subtitle">Supports PDF, DOCX, PPTX, TXT &mdash; Max 50 MB</p>
                 <span class="dropzone__divider">or</span>
@@ -423,6 +552,28 @@
                 <label for="docDescription">Brief Description (optional)</label>
                 <textarea id="docDescription" name="docDescription" rows="3" placeholder="What is this document about?"></textarea>
               </div>
+
+              <!-- Faculty-only fields (hidden for students) -->
+              <div class="faculty-only-fields" id="facultyOnlyFields" style="display:none;">
+                <div class="form-group">
+                  <label for="courseCode">Course Code</label>
+                  <input type="text" id="courseCode" name="courseCode" placeholder="e.g. IT301" />
+                </div>
+                <div class="form-group">
+                  <label for="learningCompetency">Learning Competency</label>
+                  <input type="text" id="learningCompetency" name="learningCompetency" placeholder="e.g. Understand data normalization" />
+                </div>
+              </div>
+
+              <!-- Visibility selector — Faculty and Admin only -->
+              <div class="form-group visibility-selector-field" id="visibilityField" style="display:none;">
+                <label for="uploadVisibility">Upload Visibility</label>
+                <select id="uploadVisibility" name="uploadVisibility" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
+                  <option value="public_academic">Public Academic Material (visible to all students & faculty)</option>
+                  <option value="private_faculty">Private Faculty Material (visible to uploader & admin only)</option>
+                </select>
+              </div>
+
             </fieldset>
 
             <!-- AI Processing Mode Selector -->
@@ -437,7 +588,7 @@
                 <label class="ai-mode-card" for="modeSimple">
                   <input type="radio" id="modeSimple" name="aiMode" value="simple" checked />
                   <div class="ai-mode-card__body">
-                    <span class="ai-mode-card__icon" aria-hidden="true">&#128161;</span>
+                    <span class="ai-mode-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="8.5" r="5" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M7.5 14.5h5M8.5 17h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
                     <strong>Simple</strong>
                     <p>A concise, easy-to-read summary of the main points.</p>
                   </div>
@@ -446,7 +597,7 @@
                 <label class="ai-mode-card" for="modeExam">
                   <input type="radio" id="modeExam" name="aiMode" value="exam-focused" />
                   <div class="ai-mode-card__body">
-                    <span class="ai-mode-card__icon" aria-hidden="true">&#128221;</span>
+                    <span class="ai-mode-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="2" width="13" height="16" rx="2" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M7 7h6M7 10.5h6M7 14h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
                     <strong>Exam-Focused</strong>
                     <p>Key concepts, important terms, and likely exam questions.</p>
                   </div>
@@ -455,7 +606,7 @@
                 <label class="ai-mode-card" for="modeDetailed">
                   <input type="radio" id="modeDetailed" name="aiMode" value="detailed" />
                   <div class="ai-mode-card__body">
-                    <span class="ai-mode-card__icon" aria-hidden="true">&#128300;</span>
+                    <span class="ai-mode-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8.5" cy="8.5" r="5.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M12.5 12.5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
                     <strong>Detailed</strong>
                     <p>In-depth analysis, structured breakdown, and comprehensive notes.</p>
                   </div>
@@ -467,7 +618,7 @@
             <!-- Upload Action -->
             <div class="upload-actions">
               <button class="btn btn--primary btn--lg" type="button" id="uploadBtn">
-                &#11014;&#65039; Upload &amp; Process with AI
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI
               </button>
               <button class="btn btn--ghost" type="button">Clear</button>
             </div>
@@ -479,7 +630,7 @@
             <h3>File Preview</h3>
             <div class="file-preview-card" id="filePreviewCard">
               <div class="file-preview-card__empty">
-                <span aria-hidden="true">&#128196;</span>
+                <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="3" width="26" height="30" rx="3" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/><rect x="5" y="3" width="26" height="30" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M11 13h14M11 18h10M11 23h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" opacity="0.7"/></svg></span>
                 <p>No file selected yet.<br />Your file preview will appear here.</p>
               </div>
               <!-- Populated by JS after file selection -->
@@ -522,8 +673,17 @@
           <select id="viewerDocSelect" name="viewerDocSelect">
             <option value="">— Select a Document —</option>
           </select>
+          <!-- Difficulty badge -->
+          <span id="difficultyBadge"
+                style="display:none;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:default;"
+                title=""
+                aria-label="Document difficulty"></span>
           <button class="btn btn--sm" type="button" id="reprocessBtn">&#129504; Re-process with AI</button>
+          <button class="btn btn--sm btn--ghost" type="button" id="printStudySheetBtn">&#128438; Print Study Sheet</button>
         </div>
+
+        <!-- Print Sheet (hidden from normal view, visible only during print) -->
+        <div id="printSheet" style="display:none;" aria-hidden="true"></div>
 
         <!-- Split Viewer Layout -->
         <div class="viewer-split">
@@ -532,12 +692,12 @@
           <div class="viewer-pane viewer-pane--source" role="region" aria-label="Original document content">
             <div class="viewer-pane__header">
               <h3>Original Document</h3>
-              <button class="btn btn--icon" type="button" aria-label="Copy text">&#128203;</button>
+              <button class="btn btn--icon" type="button" aria-label="Copy text"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="1.5" width="8.5" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="1.5" y="4" width="8.5" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/></svg></button>
             </div>
             <div class="viewer-pane__body" id="sourceDocBody">
               <!-- Placeholder text content area -->
               <div class="viewer-placeholder">
-                <span aria-hidden="true">&#128196;</span>
+                <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="3" width="26" height="30" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M11 13h14M11 18h10M11 23h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" opacity="0.6"/></svg></span>
                 <p>Select a document above to load its content here.</p>
               </div>
               <!-- Populated by JS: extracted/original document text will appear here -->
@@ -547,12 +707,21 @@
           <!-- Right Panel: AI Output Tabs -->
           <div class="viewer-pane viewer-pane--ai" role="region" aria-label="AI-generated content">
             <div class="viewer-pane__header">
-              <h3>AI Output</h3>
+              <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <h3>AI Output</h3>
+                <!-- Study timer badge -->
+                <span id="studyTimerBadge"
+                      style="display:none;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(26,94,249,0.12);color:var(--clr-primary-500,#1a5ef9);font-size:0.78rem;font-weight:700;border:1px solid rgba(26,94,249,0.25);"
+                      aria-live="polite">&#9201; 0:00</span>
+                <button class="btn btn--ghost btn--sm" type="button" id="stopTimerBtn"
+                        style="display:none;font-size:0.75rem;">&#9209; Stop</button>
+              </div>
               <!-- Tab controls -->
               <div class="viewer-tabs" role="tablist" aria-label="AI output tabs">
                 <button class="viewer-tab active" role="tab" aria-selected="true"  data-tab="summary"    type="button">Summary</button>
                 <button class="viewer-tab"         role="tab" aria-selected="false" data-tab="flashcards" type="button">Flashcards</button>
                 <button class="viewer-tab"         role="tab" aria-selected="false" data-tab="quiz"       type="button">Quiz</button>
+                <button class="viewer-tab"         role="tab" aria-selected="false" data-tab="glossary"   type="button">Glossary</button>
               </div>
             </div>
 
@@ -561,7 +730,7 @@
               <!-- Tab: Summary -->
               <div class="tab-panel tab-panel--active" id="tab-summary" role="tabpanel" aria-label="AI summary">
                 <div class="viewer-placeholder" id="summaryPlaceholder">
-                  <span aria-hidden="true">&#129504;</span>
+                  <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="13" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 18.5l4 4 8-8" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                   <p>AI summary will appear here after processing.</p>
                 </div>
                 <div class="summary-output hidden" id="summaryOutput">
@@ -574,19 +743,56 @@
                 <div class="flashcard-deck" id="flashcardDeck" aria-label="Flashcard deck">
                   <!-- Flashcard items populated by JS -->
                   <div class="viewer-placeholder">
-                    <span aria-hidden="true">&#128262;</span>
+                    <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="30" height="20" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M10 18h16M10 22h10" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" opacity="0.6"/></svg></span>
                     <p>Flashcards will appear here after AI processing.</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Tab: Quiz -->
+              <!-- Tab: Glossary -->
+              <div class="tab-panel" id="tab-glossary" role="tabpanel" aria-label="AI glossary" hidden>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+                   <span style="font-size:0.83rem;color:var(--text-secondary);">AI-generated key terms from this document</span>
+                  <button class="btn btn--ghost btn--sm" type="button" id="copyGlossaryBtn">Copy All Terms</button>
+                </div>
+                <div id="glossaryOutput">
+                  <div class="viewer-placeholder">
+                    <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="3" width="18" height="26" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="13" y="7" width="18" height="26" rx="2" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/><path d="M9 12h10M9 17h7M9 22h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+                    <p>Glossary will appear after AI processing.</p>
+                  </div>
+                </div>
+              </div>
+
+             <!-- Tab: Quiz -->
               <div class="tab-panel" id="tab-quiz" role="tabpanel" aria-label="AI quiz" hidden>
+                <!-- Quiz History Bar -->
+                <div id="quizHistoryBar" style="display:none;margin-bottom:0.75rem;padding:0.6rem 1rem;border-radius:0.625rem;background:var(--bg-surface-2);border:1px solid var(--border-default);font-size:0.83rem;color:var(--text-secondary);">
+                  <span>Previous attempts: <strong id="quizAttemptCount">0</strong></span>
+                  &nbsp;|&nbsp;
+                  <span>Best: <strong id="quizBestScore">—</strong></span>
+                  &nbsp;|&nbsp;
+                  <span>Latest: <strong id="quizLatestScore">—</strong></span>
+                  <div style="margin-top:0.5rem;">
+                    <canvas id="quizProgressChart" height="60" aria-label="Quiz score progression chart" role="img"></canvas>
+                  </div>
+                </div>
                 <div class="quiz-container" id="quizContainer">
                   <div class="viewer-placeholder">
-                    <span aria-hidden="true">&#10067;</span>
+                    <span aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="13" stroke="currentColor" stroke-width="2" fill="none"/><path d="M13.5 14.5a4.5 4.5 0 0 1 9 0c0 3-4.5 3.5-4.5 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="25.5" r="1.25" fill="currentColor"/></svg></span>
                     <p>AI-generated quiz questions will appear here.</p>
                   </div>
+                </div>
+                <!-- Confidence Rating Modal (hidden until quiz complete) -->
+                <div id="confidenceRatingPanel" style="display:none;margin-top:1rem;padding:1rem 1.25rem;border-radius:0.75rem;background:var(--bg-surface-2);border:1.5px solid var(--border-default);">
+                  <p style="font-weight:600;margin:0 0 0.6rem;font-size:0.9rem;">How confident do you feel about this topic?</p>
+                  <div id="confidenceButtons" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="1" type="button">1 — Not at all</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="2" type="button">2 — Slightly</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="3" type="button">3 — Somewhat</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="4" type="button">4 — Mostly</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="5" type="button">5 — Fully confident</button>
+                  </div>
+                  <div id="confidenceAdvisory" style="display:none;margin-top:0.75rem;font-size:0.85rem;padding:0.5rem 0.75rem;border-radius:0.5rem;border:1px solid var(--border-default);"></div>
                 </div>
               </div>
 
@@ -611,7 +817,7 @@
           <!-- Key Concepts -->
           <article class="ai-output-card" id="aiKeyConcepts">
             <div class="ai-output-card__header">
-              <span class="ai-output-card__icon" aria-hidden="true">&#128273;</span>
+              <span class="ai-output-card__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="10" r="4.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M10.5 6.5l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M14 9.5l1.5 1.5-1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
               <h3>Key Concepts</h3>
               <button class="ai-output-card__toggle btn btn--icon" type="button"
                       aria-expanded="true" aria-controls="keyConceptsBody"
@@ -629,7 +835,7 @@
           <!-- Simplified Explanation -->
           <article class="ai-output-card" id="aiSimplified">
             <div class="ai-output-card__header">
-              <span class="ai-output-card__icon" aria-hidden="true">&#128161;</span>
+              <span class="ai-output-card__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="7.5" r="4.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M6.5 12.5h5M7.5 15h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
               <h3>Simplified Explanation</h3>
               <button class="ai-output-card__toggle btn btn--icon" type="button"
                       aria-expanded="true" aria-controls="simplifiedBody"
@@ -641,12 +847,13 @@
               <div class="simplified-text" id="simplifiedText">
                 <!-- Populated by AI processing -->
               </div>
+            </div>
           </article>
 
           <!-- Important Terms / Glossary -->
           <article class="ai-output-card ai-output-card--full" id="aiImportantTerms">
             <div class="ai-output-card__header">
-              <span class="ai-output-card__icon" aria-hidden="true">&#128218;</span>
+              <span class="ai-output-card__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="9" height="14" rx="1.5" stroke="currentColor" stroke-width="1.75" fill="none"/><rect x="9" y="4" width="6" height="12" rx="1" stroke="currentColor" stroke-width="1.4" fill="none" opacity="0.45"/><path d="M5.5 6h4.5M5.5 8.5h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
               <h3>Important Terms</h3>
               <button class="ai-output-card__toggle btn btn--icon" type="button"
                       aria-expanded="true" aria-controls="termsBody"
@@ -682,28 +889,28 @@
         <!-- Admin Stats Row -->
         <div class="stats-row" aria-label="Admin statistics">
           <article class="stat-card stat-card--admin">
-            <span class="stat-card__icon" aria-hidden="true">&#128196;</span>
+            <span class="stat-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M6.5 7h7M6.5 10.5h5M6.5 14h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="adminTotalFiles">--</span>
               <span class="stat-card__label">Total Files Uploaded</span>
             </div>
           </article>
           <article class="stat-card stat-card--admin">
-            <span class="stat-card__icon" aria-hidden="true">&#128218;</span>
+            <span class="stat-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="11" height="16" rx="1.5" stroke="currentColor" stroke-width="1.75" fill="none"/><rect x="12" y="5" width="5" height="13" rx="1" stroke="currentColor" stroke-width="1.4" fill="none" opacity="0.5"/><path d="M6 6.5h5M6 9.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="adminTotalSubjects">--</span>
               <span class="stat-card__label">Active Subjects</span>
             </div>
           </article>
           <article class="stat-card stat-card--admin">
-            <span class="stat-card__icon" aria-hidden="true">&#128101;</span>
+            <span class="stat-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7.5" cy="7" r="3" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M2 17c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none"/><circle cx="14" cy="7" r="2.25" stroke="currentColor" stroke-width="1.4" fill="none" opacity="0.6"/><path d="M17 17c0-2.5-1.5-4-3-4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6" fill="none"/></svg></span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="adminTotalUsers">--</span>
               <span class="stat-card__label">Registered Users</span>
             </div>
           </article>
           <article class="stat-card stat-card--admin">
-            <span class="stat-card__icon" aria-hidden="true">&#129504;</span>
+            <span class="stat-card__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.75" fill="none"/><path d="M7 10.5l2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <div class="stat-card__body">
               <span class="stat-card__value" id="adminAiRuns">--</span>
               <span class="stat-card__label">AI Processes Run</span>
@@ -799,62 +1006,13 @@
 
 
   <!-- ================================================================
-       SECTION 10 — FOOTER
-       ================================================================ -->
-  <footer class="site-footer" role="contentinfo">
-    <div class="footer-inner">
-
-      <div class="footer-brand">
-        <img
-          src="favicon.png"
-          alt="PSU Logo"
-          width="32"
-          height="32"
-          loading="lazy"
-        />
-        <div>
-          <strong>PSU AcadRes</strong>
-          <span>Palawan State University &mdash; College of Information Technology</span>
-        </div>
-      </div>
-
-      <div class="footer-links">
-        <nav aria-label="Footer navigation">
-          <button class="footer-link" data-panel="panel-hero" type="button">Home</button>
-          <button class="footer-link" data-panel="panel-dashboard" type="button">Dashboard</button>
-          <button class="footer-link" data-panel="panel-upload" type="button">Upload</button>
-          <button class="footer-link" data-panel="panel-admin" type="button">Admin</button>
-        </nav>
-      </div>
-
-      <div class="footer-meta">
-        <p class="footer-disclaimer">
-          &#9888;&#65039; <strong>Prototype Disclaimer:</strong>
-          This is a functional prototype developed as part of an undergraduate thesis project
-          at Palawan State University. Data shown is for demonstration purposes only.
-        </p>
-        <p class="footer-thesis">
-          <strong>Thesis Context:</strong> Intelligent Academic Resource Management System
-          with AI-Powered Document Summarization &mdash; BSIT, Data Analytics &amp; E-Commerce, AY 2025&ndash;2026.
-        </p>
-        <p class="footer-ai-note">
-          &#129504; Powered by Ollama (local LLM) &mdash; Llama 3 / Mistral models via FastAPI backend.
-        </p>
-      </div>
-
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; 2025&ndash;2026 Palawan State University &mdash; BSIT Department. All rights reserved.</p>
-      <p>Built by <strong>[Adviser Name]</strong> &bull; Thesis Adviser: <strong>[Adviser Name]</strong></p>
-    </div>
-  </footer>
-
-
-  <!-- ================================================================
        SCREEN-READER ONLY UTILITY CLASS TARGETS
        (sr-only class to be defined in CSS)
        ================================================================ -->
+
+  <!-- Print Study Sheet — populated by _buildPrintSheet(), hidden until print triggered -->
+  <div id="printSheet" style="display:none;position:fixed;inset:0;background:#fff;z-index:99999;padding:2rem 2.5rem;overflow:auto;font-family:Georgia,serif;color:#111;"></div>
+
 
 </body>
 </html>
