@@ -1241,7 +1241,7 @@ const UploadController = {
       showToast('File saved locally!', 'success');
       ActivityController.log(`Uploaded "${uploadedFileName}"`, 'upload');
 
-      // Try backend — optional, non-blocking
+      // Backend upload is REQUIRED for AI processing
       let fileId = localId;
       try {
         const result = await ApiService.uploadDocument(formData);
@@ -1250,7 +1250,14 @@ const UploadController = {
           fileId   = result.fileId;
           AppState.saveUploads();
         }
-      } catch { /* no backend — local save is enough */ }
+      } catch (backendErr) {
+        // Backend unreachable - AI cannot run without a real fileId
+        showToast('Backend unavailable. Start the FastAPI server to enable AI processing.', 'error');
+        this._setProgressLabel('Backend offline — file saved locally only.');
+        AppState.isProcessing = false;
+        if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI'; }
+        return;
+      }
 
       AppState.isProcessing = false;
       if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI'; }
