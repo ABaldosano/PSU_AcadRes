@@ -1316,7 +1316,10 @@ async refreshDocumentList() {
       url.searchParams.set('role',        role.toLowerCase());
       url.searchParams.set('uploader_id', sessionId);
 
-      const response = await fetch(url.toString());
+      const ctrl2 = new AbortController();
+      const tid2  = setTimeout(() => ctrl2.abort(), 4000);
+      const response = await fetch(url.toString(), { signal: ctrl2.signal });
+      clearTimeout(tid2);
       if (!response.ok) throw new Error(`Failed to fetch documents: ${response.status}`);
       const json = await response.json();
       let docs = json.data?.documents || [];
