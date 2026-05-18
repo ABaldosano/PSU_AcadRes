@@ -1,10 +1,10 @@
 /**
  * ============================================================
- * PSU AcadRes — index-script.js
+ * PSU AcadRes - index-script.js
  * Intelligent Academic Resource Management System
  * Palawan State University · College of Information Technology
  *
- * Frontend Interaction Layer — Prototype Phase
+ * Frontend Interaction Layer - Prototype Phase
  * Architecture: Modular, scalable, FastAPI/Ollama-ready
  * ============================================================
  */
@@ -12,7 +12,7 @@
 'use strict';
 
 /* ============================================================
-   SECTION A — CONSTANTS & CONFIGURATION
+   SECTION A - CONSTANTS & CONFIGURATION
    ============================================================ */
 
 /** Allowed upload MIME types and their display labels */
@@ -29,7 +29,7 @@ const ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.pptx', '.txt'];
 /** Max upload size in bytes (50 MB) */
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-/** localStorage keys — centralised to avoid typos */
+/** localStorage keys - centralised to avoid typos */
 const LS = {
 THEME:             'psu-acadres-theme',
 ROLE:              'psu-acadres-role',
@@ -46,7 +46,7 @@ ACTIVITY_LOG:      'psu-acadres-activity-log',
 SESSION_ID:        'psu-acadres-session-id',
 };
 
-/** API endpoints — FastAPI backend */
+/** API endpoints - FastAPI backend */
 const API = {
   BASE:          'http://127.0.0.1:8000',
   UPLOAD:        'http://127.0.0.1:8000/api/upload',
@@ -61,11 +61,11 @@ const API = {
 };
 
 /* ============================================================
-   SECTION B — UTILITY FUNCTIONS
+   SECTION B - UTILITY FUNCTIONS
    ============================================================ */
 
 /**
- * Safe localStorage getter — returns null if unavailable or parse fails.
+ * Safe localStorage getter - returns null if unavailable or parse fails.
  * @param {string} key
  * @returns {string|null}
  */
@@ -81,7 +81,7 @@ function lsGet(key) {
  */
 function lsSet(key, value) {
   try { localStorage.setItem(key, value); }
-  catch { /* storage unavailable — silently skip */ }
+  catch { /* storage unavailable - silently skip */ }
 }
 
 /**
@@ -200,8 +200,8 @@ function showToast(message, type = 'info', duration = 3500) {
 }
 
 /* ============================================================
-   SECTION C — API SERVICE LAYER
-   Modular fetch wrappers — swap mock returns for real fetch()
+   SECTION C - API SERVICE LAYER
+   Modular fetch wrappers - swap mock returns for real fetch()
    calls once FastAPI backend is available.
    ============================================================ */
 
@@ -265,7 +265,7 @@ const ApiService = {
 };
 
 /* ============================================================
-   SECTION D — STATE MANAGEMENT
+   SECTION D - STATE MANAGEMENT
    ============================================================ */
 
 const AppState = {
@@ -291,7 +291,7 @@ const AppState = {
     try { this.aiStats = rawStats ? JSON.parse(rawStats) : { summaries: 0, flashcards: 0 }; }
     catch { this.aiStats = { summaries: 0, flashcards: 0 }; }
 
-    // Persistent session ID — identifies this browser session for upload ownership
+    // Persistent session ID - identifies this browser session for upload ownership
     let sid = lsGet(LS.SESSION_ID);
     if (!sid) {
       sid = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
@@ -312,7 +312,7 @@ const AppState = {
 };
 
 /* ============================================================
-   SECTION F2 — STUDENT PROFILE & ACCESS CONTROLLER
+   SECTION F2 - STUDENT PROFILE & ACCESS CONTROLLER
    ============================================================ */
 
 const StudentProfileController = {
@@ -427,7 +427,7 @@ const StudentSetupController = {
 };
 
 /* ============================================================
-   SECTION F3 — STUDY PLANNER CONTROLLER
+   SECTION F3 - STUDY PLANNER CONTROLLER
    ============================================================ */
 
 const PlannerController = {
@@ -565,7 +565,7 @@ const PlannerController = {
 };
 
 /* ============================================================
-   SECTION F1 — STUDY SESSION TIMER
+   SECTION F1 - STUDY SESSION TIMER
    ============================================================ */
 
 const StudyTimerController = {
@@ -606,7 +606,7 @@ const StudyTimerController = {
     if (badge) { badge.style.display = 'none'; badge.textContent = '0:00'; }
   },
 
-  /** Discard session — no analytics recorded */
+  /** Discard session - no analytics recorded */
   cancel() {
     if (this._interval) clearInterval(this._interval);
     this._interval = null;
@@ -663,7 +663,7 @@ const StudyTimerController = {
 };
 
 /* ============================================================
-   SECTION F7 — ACTIVITY FEED CONTROLLER
+   SECTION F7 - ACTIVITY FEED CONTROLLER
    ============================================================ */
 
 const ActivityController = {
@@ -729,7 +729,7 @@ const ActivityController = {
 };
 
 /* ============================================================
-   SECTION E — THEME SYSTEM
+   SECTION E - THEME SYSTEM
    ============================================================ */
 
 const ThemeController = {
@@ -769,11 +769,11 @@ const ThemeController = {
 };
 
 /* ============================================================
-   SECTION F — ROLE SELECTION SYSTEM
+   SECTION F - ROLE SELECTION SYSTEM
    ============================================================ */
 
    /* ============================================================
-   SECTION F0 — ACCESS CONTROL FILTER
+   SECTION F0 - ACCESS CONTROL FILTER
    ============================================================ */
 
 const AccessController = {
@@ -803,7 +803,7 @@ const AccessController = {
       });
     }
 
-    // Student — public_academic faculty docs filtered by student's year/semester
+    // Student - public_academic faculty docs filtered by student's year/semester
     return docs.filter(doc => {
       const vis       = doc.visibility  || '';
       const uploaderR = (doc.uploaderRole || doc.uploader_role || '').toLowerCase();
@@ -924,7 +924,7 @@ apply(role) {
 };
 
 /* ============================================================
-   SECTION G — PANEL / NAVIGATION SYSTEM
+   SECTION G - PANEL / NAVIGATION SYSTEM
    ============================================================ */
 
 const PanelController = {
@@ -1052,7 +1052,7 @@ const PanelController = {
 };
 
 /* ============================================================
-   SECTION H — UPLOAD INTERFACE
+   SECTION H - UPLOAD INTERFACE
    ============================================================ */
 
 const UploadController = {
@@ -1090,7 +1090,7 @@ const UploadController = {
       if (e.target.files?.length) this._handleFileSelection(e.target.files[0]);
     });
 
-    // AI mode changes — update preview badge
+    // AI mode changes - update preview badge
     aiModeRadios.forEach(r => r.addEventListener('change', () => this._updateAiModePreview()));
 
     // Upload button
@@ -1139,7 +1139,7 @@ const UploadController = {
     }
 
     this._updateAiModePreview();
-    this._setProgressLabel('File selected — ready to upload.');
+    this._setProgressLabel('File selected - ready to upload.');
   },
 
   _updateAiModePreview() {
@@ -1173,7 +1173,7 @@ const UploadController = {
     const subject = document.getElementById('subjectTag')?.value.trim() || 'Untagged';
     const role    = AppState.role || 'Student';
 
-    // Students: always use their profile year/semester — never let them override
+    // Students: always use their profile year/semester - never let them override
     let yearLevel, semester;
     if (role === 'Student') {
       yearLevel = lsGet(LS.STUDENT_YEAR) || '';
@@ -1318,7 +1318,7 @@ const UploadController = {
 };
 
 /* ============================================================
-   SECTION I — DOCUMENT VIEWER & AI TAB SYSTEM
+   SECTION I - DOCUMENT VIEWER & AI TAB SYSTEM
    ============================================================ */
 
 const ViewerController = {
@@ -1342,7 +1342,7 @@ async refreshDocumentList() {
 
       docs = AccessController.filterDocuments(docs, role, sessionId);
 
-      select.innerHTML = `<option value="">— Select a Document —</option>`;
+      select.innerHTML = `<option value="">- Select a Document -</option>`;
       docs.forEach(doc => {
         const opt = document.createElement('option');
         opt.value = doc.id;
@@ -1351,7 +1351,7 @@ async refreshDocumentList() {
         select.appendChild(opt);
       });
     } catch {
-      select.innerHTML = `<option value="">— Select a Document —</option>`;
+      select.innerHTML = `<option value="">- Select a Document -</option>`;
       const local = AccessController.filterDocuments(AppState.uploadedFiles, role, sessionId);
       local.forEach(f => {
         const opt = document.createElement('option');
@@ -1385,6 +1385,31 @@ async refreshDocumentList() {
     document.getElementById('stopTimerBtn')?.addEventListener('click', () => {
       StudyTimerController.stop();
       document.getElementById('stopTimerBtn').style.display = 'none';
+      document.getElementById('cancelStudyBtn')?.remove();
+      const badge = document.getElementById('studyTimerBadge');
+      if (badge) badge.style.display = 'none';
+      // Show "Start Timer" button to allow restart
+      const stopBtn = document.getElementById('stopTimerBtn');
+      const timerArea = stopBtn?.parentElement;
+      if (timerArea && !document.getElementById('restartTimerBtn')) {
+        const restartBtn = document.createElement('button');
+        restartBtn.id        = 'restartTimerBtn';
+        restartBtn.type      = 'button';
+        restartBtn.className = 'btn btn--ghost btn--sm';
+        restartBtn.style.fontSize = '0.75rem';
+        restartBtn.textContent = '⏱ Start Timer';
+        timerArea.appendChild(restartBtn);
+        restartBtn.addEventListener('click', () => {
+          restartBtn.remove();
+          const sel = document.getElementById('viewerDocSelect');
+          const docId = sel?.value;
+          if (!docId) return;
+          const cached = AppState.aiOutputCache[docId];
+          const fileObj = AppState.uploadedFiles.find(f => f.id === docId) || {};
+          const doc = { id: docId, filename: fileObj.name || docId, aiOutput: cached || {} };
+          ViewerController._showStudyTimerPrompt(docId, doc);
+        });
+      }
     });
 
     // Show stop button when timer badge appears
@@ -1407,7 +1432,7 @@ async refreshDocumentList() {
       await this._triggerAiProcess(sel.value);
     });
 
-    // AI Output panel — collapsible cards
+    // AI Output panel - collapsible cards
     document.querySelectorAll('.ai-output-card__toggle').forEach(btn => {
       btn.addEventListener('click', () => this._toggleOutputCard(btn));
     });
@@ -1422,7 +1447,7 @@ async refreshDocumentList() {
       if (body) {
         navigator.clipboard?.writeText(body.innerText)
           .then(() => showToast('Text copied to clipboard.', 'success'))
-          .catch(()  => showToast('Copy failed — please select text manually.', 'warning'));
+          .catch(()  => showToast('Copy failed - please select text manually.', 'warning'));
       }
 
       
@@ -1452,7 +1477,7 @@ async refreshDocumentList() {
   async _loadDocument(docId) {
     if (!docId) return;
 
-    // Stop any active timer for previous doc (no analytics — user changed doc, not stopped)
+    // Stop any active timer for previous doc (no analytics - user changed doc, not stopped)
     StudyTimerController.cancel();
 
     const body = document.getElementById('sourceDocBody');
@@ -1492,11 +1517,11 @@ async refreshDocumentList() {
       const metaLines = [
         `File: ${doc.filename || docId}`,
         `Subject: ${doc.subject || 'Untagged'}`,
-        `Year Level: ${doc.year_level || '—'}`,
-        `Semester: ${doc.semester || '—'}`,
-        `AI Mode: ${doc.ai_mode || '—'}`,
+        `Year Level: ${doc.year_level || '-'}`,
+        `Semester: ${doc.semester || '-'}`,
+        `AI Mode: ${doc.ai_mode || '-'}`,
         `Status: ${doc.ai_status || 'unknown'}`,
-        `Uploaded: ${doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : '—'}`,
+        `Uploaded: ${doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : '-'}`,
       ].join('\n');
       body.innerHTML = `<div style="padding:1rem;line-height:1.8;white-space:pre-wrap;color:var(--text-primary);font-size:0.9rem;">${escapeHtml(metaLines)}</div>`;
 
@@ -1515,7 +1540,7 @@ async refreshDocumentList() {
         return;
       }
 
-      // AI complete — render difficulty badge
+      // AI complete - render difficulty badge
       if (doc.difficulty) {
         this._renderDifficultyBadge(docId, doc.difficulty, doc.difficultyRationale || doc.difficulty_rationale);
       }
@@ -1671,7 +1696,7 @@ async _triggerAiProcess(docId) {
         // Re-load doc to trigger proper study timer prompt with fresh AI data
         await this._loadDocument(docId);
       } else {
-        // Doc not currently selected — just render outputs silently
+        // Doc not currently selected - just render outputs silently
         if (result.summary)            this._renderSummary(result.summary);
         if (result.flashcards?.length) this._renderFlashcards(result.flashcards);
         if (result.quiz?.length)       this._renderQuiz(result.quiz);
@@ -1691,7 +1716,7 @@ async _triggerAiProcess(docId) {
       if (result.flashcards?.length) AppState.aiStats.flashcards += result.flashcards.length;
       AppState.saveAiStats();
 
-      // Update aiStatus on the corresponding upload entry — 'summarized' matches backend value
+      // Update aiStatus on the corresponding upload entry - 'summarized' matches backend value
       const entry = AppState.uploadedFiles.find(f => f.id === docId);
       if (entry) { entry.aiStatus = 'summarized'; AppState.saveUploads(); }
 
@@ -1807,7 +1832,7 @@ _renderQuiz(questions) {
 
     container.innerHTML = `
       <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
-        <span style="font-size:0.85rem;color:var(--text-secondary);">${validQ.length} questions — select an answer for each</span>
+        <span style="font-size:0.85rem;color:var(--text-secondary);">${validQ.length} questions: Select an answer for each</span>
         <span id="quizScoreDisplay" style="font-size:0.85rem;font-weight:600;color:var(--clr-primary-500,#1a5ef9);">Score: 0 / ${validQ.length}</span>
       </div>
       ${validQ.map((q, qi) => `
@@ -1901,7 +1926,7 @@ _renderQuiz(questions) {
   },
 
   _exportToPDF() {
-    showToast('Exporting AI output to PDF… (requires jsPDF — production ready)', 'info');
+    showToast('Exporting AI output to PDF… (requires jsPDF - production ready)', 'info');
     // PRODUCTION: wire up jsPDF here using window.jspdf.jsPDF
   },
 
@@ -1932,7 +1957,7 @@ _copyOutput() {
         `).join('')}
       </dl>`;
 
-    // Copy all terms button — replace element to strip stale listeners
+    // Copy all terms button - replace element to strip stale listeners
     const copyBtn = document.getElementById('copyGlossaryBtn');
     if (copyBtn) {
       const freshBtn = copyBtn.cloneNode(true);
@@ -2034,7 +2059,7 @@ _copyOutput() {
     const badge  = document.getElementById('difficultyBadge');
     if (badge) {
       badge.style.display    = '';
-      badge.textContent      = difficulty || '—';
+      badge.textContent      = difficulty || '-';
       badge.style.background = style.bg;
       badge.style.color      = style.color;
       badge.style.border     = `1px solid ${style.border}`;
@@ -2100,7 +2125,7 @@ _copyOutput() {
           confidence_rating: confidence,
         }),
       });
-      ActivityController.log('Quiz completed — score submitted.', 'quiz');
+      ActivityController.log('Quiz completed - score submitted.', 'quiz');
     } catch { /* silent */ }
   },
 
@@ -2151,12 +2176,81 @@ _showConfidencePanel(score, maxScore, pct) {
 };
 
 /* ============================================================
-   SECTION J — DASHBOARD CONTROLLER
+   SECTION J - DASHBOARD CONTROLLER
    ============================================================ */
 
 const DashboardController = {
 
   _chartInstance: null,
+  _fullReportChartInstance: null,
+
+  _openFullReport() {
+    let modal = document.getElementById('fullReportModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'fullReportModal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'fullReportTitle');
+      modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.5);overflow-y:auto;padding:1.5rem;';
+      modal.innerHTML = `
+        <div style="max-width:780px;margin:auto;background:var(--bg-surface);border-radius:1rem;padding:1.75rem;box-shadow:var(--shadow-xl);position:relative;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+            <h3 id="fullReportTitle" style="margin:0;font-size:1.1rem;font-weight:700;">Analytics - Full Report</h3>
+            <button type="button" id="fullReportClose" aria-label="Close" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:var(--text-secondary);">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div style="margin-bottom:1.25rem;">
+            <canvas id="fullReportChart" style="width:100%;max-height:360px;" aria-label="Full analytics chart" role="img"></canvas>
+          </div>
+          <div id="fullReportStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;margin-top:1rem;"></div>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:1rem;">All time documents uploaded per subject</p>
+        </div>`;
+      document.body.appendChild(modal);
+
+      document.getElementById('fullReportClose')?.addEventListener('click', () => { modal.style.display = 'none'; });
+      modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+
+    modal.style.display = '';
+
+    // Render full report chart
+    const canvas = document.getElementById('fullReportChart');
+    if (canvas && window.Chart) {
+      if (this._fullReportChartInstance) { this._fullReportChartInstance.destroy(); this._fullReportChartInstance = null; }
+      const subjectCounts = AppState.uploadedFiles.reduce((acc, f) => {
+        const s = f.subject || 'Untagged'; acc[s] = (acc[s] || 0) + 1; return acc;
+      }, {});
+      const labels = Object.keys(subjectCounts);
+      const data   = Object.values(subjectCounts);
+      const palette = ['rgba(26,94,249,0.75)','rgba(6,182,212,0.75)','rgba(245,158,11,0.75)','rgba(34,197,94,0.75)','rgba(239,68,68,0.75)','rgba(168,85,247,0.75)'];
+      this._fullReportChartInstance = new window.Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: { labels: labels.length ? labels : ['No data'], datasets: [{ label: 'Documents', data: data.length ? data : [0], backgroundColor: labels.map((_, i) => palette[i % palette.length]), borderRadius: 8 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+      });
+    }
+
+    // Render summary stats
+    const statsEl = document.getElementById('fullReportStats');
+    if (statsEl) {
+      const files    = AppState.uploadedFiles;
+      const subjects = [...new Set(files.map(f => f.subject).filter(Boolean))];
+      const processed = files.filter(f => f.aiStatus === 'summarized').length;
+      const statItems = [
+        { label: 'Total Documents', value: files.length },
+        { label: 'Subjects Covered', value: subjects.length },
+        { label: 'AI Processed', value: processed },
+        { label: 'Pending AI', value: files.length - processed },
+      ];
+      statsEl.innerHTML = statItems.map(s => `
+        <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:0.75rem;padding:0.85rem 1rem;">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--clr-primary-500);">${s.value}</div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:0.15rem;">${s.label}</div>
+        </div>`).join('');
+    }
+  },
 
   refresh() {
     this._renderStats();
@@ -2212,7 +2306,7 @@ const DashboardController = {
         });
         if (changed) AppState.saveUploads();
       }
-    } catch { /* backend unavailable — use cached statuses */ }
+    } catch { /* backend unavailable - use cached statuses */ }
 
     const typeIcon = { PDF: '[PDF]', DOCX: '[DOCX]', PPTX: '[PPTX]', TXT: '[TXT]' };
     const relativeTime = iso => {
@@ -2295,6 +2389,10 @@ const DashboardController = {
     });
   },
 
+  bindFullReport() {
+    document.getElementById('fullReportBtn')?.addEventListener('click', () => this._openFullReport());
+  },
+
   _initChart() {
     const canvas = document.getElementById('dashboardChart');
     if (!canvas || !window.Chart) return;
@@ -2340,7 +2438,7 @@ const DashboardController = {
 };
 
 /* ============================================================
-   SECTION K2 — VIEW ALL UPLOADS MODAL + DELETE
+   SECTION K2 - VIEW ALL UPLOADS MODAL + DELETE
    ============================================================ */
 
 const ViewAllController = {
@@ -2445,7 +2543,7 @@ const ViewAllController = {
 };
 
 /* ============================================================
-   SECTION L — ADMIN DASHBOARD CONTROLLER
+   SECTION L - ADMIN DASHBOARD CONTROLLER
    ============================================================ */
 
 const AdminController = {
@@ -2594,7 +2692,7 @@ _renderStats(stats) {
       });
     }
 
-    // Re-render on range change — bind only once
+    // Re-render on range change - bind only once
     const rangeEl = document.getElementById('adminChartRange');
     if (rangeEl && !rangeEl._chartRangeBound) {
       rangeEl._chartRangeBound = true;
@@ -2651,7 +2749,7 @@ _renderStats(stats) {
 };
 
 /* ============================================================
-   SECTION M — DROPDOWN & PROFILE MENU
+   SECTION M - DROPDOWN & PROFILE MENU
    ============================================================ */
 
 const DropdownController = {
@@ -2709,7 +2807,7 @@ const DropdownController = {
       if (nav) nav.style.display = 'none';
 
       const roleEl = document.getElementById('activeRole');
-      if (roleEl) roleEl.textContent = '—';
+      if (roleEl) roleEl.textContent = '-';
 
       PanelController.show('hero');
       close();
@@ -2719,7 +2817,7 @@ const DropdownController = {
 };
 
 /* ============================================================
-   SECTION N — GLOBAL KEYBOARD SHORTCUTS
+   SECTION N - GLOBAL KEYBOARD SHORTCUTS
    ============================================================ */
 
 const KeyboardController = {
@@ -2741,7 +2839,7 @@ const KeyboardController = {
 };
 
 /* ============================================================
-   SECTION O — AI TOOL QUICK-LAUNCH BUTTONS (Dashboard)
+   SECTION O - AI TOOL QUICK-LAUNCH BUTTONS (Dashboard)
    ============================================================ */
 
 const AiToolsController = {
@@ -2756,7 +2854,7 @@ const AiToolsController = {
         PanelController.show('viewer');
         const tab = ['summary', 'flashcards', 'quiz'][i] || 'summary';
         ViewerController._switchTab(tab);
-        showToast(`${toolNames[i]} ready — select a document to begin.`, 'info');
+        showToast(`${toolNames[i]} ready - select a document to begin.`, 'info');
       });
     });
 
@@ -2772,7 +2870,7 @@ const AiToolsController = {
 };
 
 /* ============================================================
-   SECTION P — APPLICATION BOOTSTRAP
+   SECTION P - APPLICATION BOOTSTRAP
    ============================================================ */
 
 function initApp() {
@@ -2796,13 +2894,14 @@ function initApp() {
   UploadController.bindEvents();
   ViewerController.bindEvents();
   ViewAllController.bindEvents();
+  DashboardController.bindFullReport();
   DropdownController.bindEvents();
   KeyboardController.bindEvents();
   AiToolsController.bindEvents();
   StudentProfileController.bindEvents();
   StudentSetupController.bindEvents();
 
-  // Hide year/semester upload fields for students — auto-filled from profile
+  // Hide year/semester upload fields for students - auto-filled from profile
   const _applyUploadFieldVisibility = () => {
     const isStudent = (AppState.role || 'Student') === 'Student';
     const ylField  = document.getElementById('yearLevelField');
@@ -2819,7 +2918,7 @@ function initApp() {
   ActivityController.render();
   document.getElementById('clearActivityBtn')?.addEventListener('click', () => ActivityController.clear());
 
-  // Admin file filter (standalone — no SearchController)
+  // Admin file filter (standalone - no SearchController)
   document.getElementById('adminFileFilter')?.addEventListener('input', e => {
     AdminController.filterFileTable(e.target.value);
   });
@@ -2828,7 +2927,7 @@ function initApp() {
 
   // 5. Console signature (prototype)
   console.info(
-    '%cPSU AcadRes — Frontend Interaction Layer loaded.',
+    '%cPSU AcadRes - Frontend Interaction Layer loaded.',
     'color:#1a5ef9;font-weight:600;'
   );
   console.info('State:', AppState);

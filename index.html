@@ -23,7 +23,7 @@
 <body data-theme="light">
 
   <!-- ================================================================
-       SECTION 1 — GLOBAL HEADER / NAVBAR
+       SECTION 1 - GLOBAL HEADER / NAVBAR
        ================================================================ -->
   <header class="top-navbar" role="banner">
     <div class="nav-left">
@@ -80,7 +80,7 @@
           <div class="student-only-profile" id="studentProfileFields" style="padding:0.5rem 1rem 0.25rem;">
             <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">My Year Level</label>
             <select id="profileYearLevel" style="width:100%;margin-bottom:0.4rem;padding:0.25rem 0.4rem;font-size:0.82rem;border:1px solid var(--border-default);border-radius:0.4rem;background:var(--bg-surface);color:var(--text-primary);">
-              <option value="">— Select —</option>
+              <option value="">- Select -</option>
               <option value="1">1st Year</option>
               <option value="2">2nd Year</option>
               <option value="3">3rd Year</option>
@@ -88,7 +88,7 @@
             </select>
             <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">Current Semester</label>
             <select id="profileSemester" style="width:100%;padding:0.25rem 0.4rem;font-size:0.82rem;border:1px solid var(--border-default);border-radius:0.4rem;background:var(--bg-surface);color:var(--text-primary);">
-              <option value="">— Select —</option>
+              <option value="">- Select -</option>
               <option value="1">1st Semester</option>
               <option value="2">2nd Semester</option>
               <option value="summer">Summer</option>
@@ -104,14 +104,14 @@
 
 
   <!-- ================================================================
-       PANELS WRAPPER — all sections live here as switchable panels
+       PANELS WRAPPER - all sections live here as switchable panels
        ================================================================ -->
   <div class="panels-wrapper">
     <div class="panels-container">
 
 
       <!-- ==============================================================
-           SECTION 2 — HERO / LANDING SECTION
+           SECTION 2 - HERO / LANDING SECTION
            ============================================================== -->
       <section class="panel panel--hero active" id="panel-hero" aria-label="Landing hero">
         <div class="hero-content">
@@ -173,7 +173,7 @@
 
 
       <!-- ==============================================================
-           SECTION 3 — ROLE SELECTION
+           SECTION 3 - ROLE SELECTION
            ============================================================== -->
       <section class="panel panel--roles" id="panel-role-select" aria-label="Role selection">
         <header class="panel-header">
@@ -243,7 +243,7 @@
 
 
       <!-- ==============================================================
-       SECTION 3b — STUDENT ACADEMIC STANDING SETUP
+       SECTION 3b - STUDENT ACADEMIC STANDING SETUP
        ============================================================== -->
   <section class="panel panel--student-setup" id="panel-student-setup" aria-label="Student academic standing setup">
     <header class="panel-header">
@@ -262,7 +262,7 @@
         <div class="form-group" style="margin-top:1rem;">
           <label for="setupYearLevel">Year Level</label>
           <select id="setupYearLevel" name="setupYearLevel" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
-            <option value="">— Select Year Level —</option>
+            <option value="">- Select Year Level -</option>
             <option value="1">1st Year</option>
             <option value="2">2nd Year</option>
             <option value="3">3rd Year</option>
@@ -273,7 +273,7 @@
         <div class="form-group" style="margin-top:0.75rem;">
           <label for="setupYearStanding">Year Standing <span style="font-size:0.78rem;color:var(--text-secondary);">(for irregular students)</span></label>
           <select id="setupYearStanding" name="setupYearStanding" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
-            <option value="">— Same as Year Level —</option>
+            <option value="">- Same as Year Level -</option>
             <option value="1">1st Year Standing</option>
             <option value="2">2nd Year Standing</option>
             <option value="3">3rd Year Standing</option>
@@ -284,7 +284,7 @@
         <div class="form-group" style="margin-top:0.75rem;">
           <label for="setupSemester">Current Semester</label>
           <select id="setupSemester" name="setupSemester" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
-            <option value="">— Select Semester —</option>
+            <option value="">- Select Semester -</option>
             <option value="1">1st Semester</option>
             <option value="2">2nd Semester</option>
             <option value="summer">Summer</option>
@@ -301,7 +301,7 @@
 
 
   <!-- ==============================================================
-       SECTION 4 — MAIN DASHBOARD
+       SECTION 4 - MAIN DASHBOARD
            ============================================================== -->
       <section class="panel panel--dashboard" id="panel-dashboard" aria-label="Main dashboard">
         <header class="panel-header">
@@ -483,7 +483,7 @@
             <section class="dash-widget" aria-label="Analytics preview">
               <div class="dash-widget__header">
                 <h3>Analytics</h3>
-                <button class="btn btn--ghost" type="button">Full Report</button>
+                <button class="btn btn--ghost" type="button" id="fullReportBtn">Full Report</button>
               </div>
               <div class="analytics-chart-placeholder">
                 <canvas id="dashboardChart" aria-label="Dashboard analytics chart" role="img"></canvas>
@@ -520,7 +520,7 @@
 
 
       <!-- ==============================================================
-           SECTION 5 — UPLOAD INTERFACE
+           SECTION 5 - UPLOAD INTERFACE
            ============================================================== -->
       <section class="panel panel--upload" id="panel-upload" aria-label="Document upload interface">
         <header class="panel-header">
@@ -558,7 +558,7 @@
               <div class="form-group" id="yearLevelField">
                 <label for="yearLevel">Year Level</label>
                 <select id="yearLevel" name="yearLevel">
-                  <option value="">— Select Year Level —</option>
+                  <option value="">- Select Year Level -</option>
                   <option value="1">1st Year</option>
                   <option value="2">2nd Year</option>
                   <option value="3">3rd Year</option>
@@ -569,7 +569,7 @@
               <div class="form-group" id="semesterField">
                 <label for="semester">Semester</label>
                 <select id="semester" name="semester">
-                  <option value="">— Select Semester —</option>
+                  <option value="">- Select Semester -</option>
                   <option value="1">1st Semester</option>
                   <option value="2">2nd Semester</option>
                   <option value="summer">Summer</option>
@@ -593,7 +593,7 @@
                 </div>
               </div>
 
-              <!-- Visibility selector — Faculty and Admin only -->
+              <!-- Visibility selector - Faculty and Admin only -->
               <div class="form-group visibility-selector-field" id="visibilityField" style="display:none;">
                 <label for="uploadVisibility">Upload Visibility</label>
                 <select id="uploadVisibility" name="uploadVisibility" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
@@ -665,9 +665,9 @@
               <div class="file-preview-card__details hidden" id="filePreviewDetails">
                 <div class="file-preview-card__thumb" id="fileThumb" aria-hidden="true"></div>
                 <ul class="file-preview-card__meta">
-                  <li><span>Name:</span> <strong id="prevFileName">—</strong></li>
-                  <li><span>Type:</span> <strong id="prevFileType">—</strong></li>
-                  <li><span>Size:</span> <strong id="prevFileSize">—</strong></li>
+                  <li><span>Name:</span> <strong id="prevFileName">-</strong></li>
+                  <li><span>Type:</span> <strong id="prevFileType">-</strong></li>
+                  <li><span>Size:</span> <strong id="prevFileSize">-</strong></li>
                   <li><span>AI Mode:</span> <strong id="prevAiMode">Simple</strong></li>
                 </ul>
               </div>
@@ -687,7 +687,7 @@
 
 
       <!-- ==============================================================
-           SECTION 6 — DOCUMENT VIEWER (Split Layout)
+           SECTION 6 - DOCUMENT VIEWER (Split Layout)
            ============================================================== -->
       <section class="panel panel--viewer" id="panel-viewer" aria-label="Document viewer">
         <header class="panel-header">
@@ -698,14 +698,14 @@
         <div class="viewer-toolbar">
           <label for="viewerDocSelect">Viewing:</label>
           <select id="viewerDocSelect" name="viewerDocSelect">
-            <option value="">— Select a Document —</option>
+            <option value="">- Select a Document -</option>
           </select>
           <!-- Difficulty badge -->
           <span id="difficultyBadge"
                 style="display:none;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:default;"
                 title=""
                 aria-label="Document difficulty"></span>
-          <button class="btn btn--sm" type="button" id="reprocessBtn">Re-process with AI</button>
+          <button class="btn btn--sm" type="button" id="reprocessBtn">Re-process Document</button>
           <button class="btn btn--sm btn--ghost" type="button" id="printStudySheetBtn">&#128438; Print Study Sheet</button>
         </div>
 
@@ -795,9 +795,9 @@
                 <div id="quizHistoryBar" style="display:none;margin-bottom:0.75rem;padding:0.6rem 1rem;border-radius:0.625rem;background:var(--bg-surface-2);border:1px solid var(--border-default);font-size:0.83rem;color:var(--text-secondary);">
                   <span>Previous attempts: <strong id="quizAttemptCount">0</strong></span>
                   &nbsp;|&nbsp;
-                  <span>Best: <strong id="quizBestScore">—</strong></span>
+                  <span>Best: <strong id="quizBestScore">-</strong></span>
                   &nbsp;|&nbsp;
-                  <span>Latest: <strong id="quizLatestScore">—</strong></span>
+                  <span>Latest: <strong id="quizLatestScore">-</strong></span>
                   <div style="margin-top:0.5rem;">
                     <canvas id="quizProgressChart" height="60" aria-label="Quiz score progression chart" role="img"></canvas>
                   </div>
@@ -809,14 +809,14 @@
                   </div>
                 </div>
                 <!-- Confidence Rating Modal (hidden until quiz complete) -->
-                <div id="confidenceRatingPanel" style="display:none;margin-top:1rem;padding:1rem 1.25rem;border-radius:0.75rem;background:var(--bg-surface-2);border:1.5px solid var(--border-default);">
+                <div id="confidenceRatingPanel" style="display:none;margin-top:1rem;padding:1rem 1.25rem 1.5rem;border-radius:0.75rem;background:var(--bg-surface-2);border:1.5px solid var(--border-default);margin-bottom:1.25rem;">
                   <p style="font-weight:600;margin:0 0 0.6rem;font-size:0.9rem;">How confident do you feel about this topic?</p>
                   <div id="confidenceButtons" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="1" type="button">1 — Not at all</button>
-                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="2" type="button">2 — Slightly</button>
-                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="3" type="button">3 — Somewhat</button>
-                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="4" type="button">4 — Mostly</button>
-                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="5" type="button">5 — Fully confident</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="1" type="button">1 - Not at all</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="2" type="button">2 - Slightly</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="3" type="button">3 - Somewhat</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="4" type="button">4 - Mostly</button>
+                    <button class="conf-btn btn btn--ghost btn--sm" data-conf="5" type="button">5 - Fully confident</button>
                   </div>
                   <div id="confidenceAdvisory" style="display:none;margin-top:0.75rem;font-size:0.85rem;padding:0.5rem 0.75rem;border-radius:0.5rem;border:1px solid var(--border-default);"></div>
                 </div>
@@ -830,7 +830,7 @@
 
 
       <!-- ==============================================================
-           SECTION 7 — AI OUTPUT SECTION
+           SECTION 7 - AI OUTPUT SECTION
            ============================================================== -->
       <section class="panel panel--ai-output" id="panel-ai-output" aria-label="AI output details">
         <header class="panel-header">
@@ -904,7 +904,7 @@
       </section>
 
       <!-- ==============================================================
-           SECTION 9 — ADMIN DASHBOARD
+           SECTION 9 - ADMIN DASHBOARD
            ============================================================== -->
       <section class="panel panel--admin" id="panel-admin" aria-label="Admin dashboard">
         <header class="panel-header">
@@ -1036,7 +1036,7 @@
        (sr-only class to be defined in CSS)
        ================================================================ -->
 
-  <!-- Print Study Sheet — populated by _buildPrintSheet(), hidden until print triggered -->
+  <!-- Print Study Sheet - populated by _buildPrintSheet(), hidden until print triggered -->
   <div id="printSheet" style="display:none;position:fixed;inset:0;background:#fff;z-index:99999;padding:2rem 2.5rem;overflow:auto;font-family:Georgia,serif;color:#111;"></div>
 
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   PSU AcadRes — index-style.css
+   PSU AcadRes - index-style.css
    Intelligent Academic Resource Management System
    Palawan State University · College of Information Technology
    ============================================================ */
@@ -10,11 +10,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ============================================================
-   1. CSS DESIGN TOKENS — RUST ORANGE / SLATE GRAY / OFF-WHITE
+   1. CSS DESIGN TOKENS - RUST ORANGE / SLATE GRAY / OFF-WHITE
    ============================================================ */
 :root {
 
-  /* Primary — Rust Orange */
+  /* Primary - Rust Orange */
   --clr-primary-50:  #fff4f0;
   --clr-primary-100: #ffe4d9;
   --clr-primary-200: #ffc4aa;
@@ -26,12 +26,12 @@
   --clr-primary-800: #5a2112;
   --clr-primary-900: #3a140a;
 
-  /* Accent — warm amber complement */
+  /* Accent - warm amber complement */
   --clr-accent-400: #d97706;
   --clr-accent-500: #b45309;
   --clr-accent-100: #fef3c7;
 
-  /* AI highlight — warm terracotta tint */
+  /* AI highlight - warm terracotta tint */
   --clr-ai-400:  #c0522a;
   --clr-ai-500:  #a3401e;
   --clr-ai-100:  #fff4f0;
@@ -56,7 +56,7 @@
   --clr-gray-800: #2a221c;
   --clr-gray-900: #1a130e;
 
-  /* Semantic surface tokens — Off-White base */
+  /* Semantic surface tokens - Off-White base */
   --bg-page:        #f5f2ef;
   --bg-surface:     #fffefb;
   --bg-surface-2:   #f9f6f2;
@@ -2392,7 +2392,7 @@ a:focus-visible {
 }
 
 /* ============================================================
-   28. SCROLLBAR (Global — subtle)
+   28. SCROLLBAR (Global - subtle)
    ============================================================ */
 ::-webkit-scrollbar        { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track  { background: transparent; }
@@ -2425,7 +2425,7 @@ a:focus-visible {
 }
 
 /* ============================================================
-   30. RESPONSIVE — TABLET (≤ 1024px)
+   30. RESPONSIVE - TABLET (≤ 1024px)
    ============================================================ */
 @media (max-width: 1024px) {
 
@@ -2477,7 +2477,7 @@ a:focus-visible {
 }
 
 /* ============================================================
-   31. RESPONSIVE — MOBILE (≤ 768px)
+   31. RESPONSIVE - MOBILE (≤ 768px)
    ============================================================ */
 @media (max-width: 768px) {
 
@@ -2532,7 +2532,7 @@ a:focus-visible {
   .search-result-item__actions { flex-direction: row; }
 
   /* Tables */
-  .table-wrapper { border-radius: var(--radius-sm); }
+  .table-wrapper { border-radius: var(--radius-sm); overflow-x: auto; }
   th, td { padding: var(--space-2) var(--space-3); font-size: 0.8rem; }
 
   /* Dropzone */
@@ -2544,6 +2544,38 @@ a:focus-visible {
 
   /* Viewer toolbar */
   .viewer-toolbar { flex-direction: column; align-items: stretch; }
+
+  /* Dashboard widgets */
+  .dash-widget { padding: var(--space-4); }
+  .dash-widget__header { flex-wrap: wrap; gap: var(--space-2); }
+  .analytics-chart-placeholder { overflow-x: auto; }
+
+  /* AI output cards */
+  .ai-output-card { padding: var(--space-4); }
+  .ai-output-card__header { gap: var(--space-2); flex-wrap: wrap; }
+
+  /* Confidence rating buttons */
+  #confidenceButtons { flex-direction: column; }
+  #confidenceButtons .conf-btn { width: 100%; justify-content: flex-start; }
+
+  /* Viewer tabs - scrollable on mobile */
+  .viewer-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+  .viewer-tab { flex-shrink: 0; font-size: 0.8rem; }
+
+  /* Study timer area */
+  #studyTimerBadge, #stopTimerBtn, #restartTimerBtn { font-size: 0.72rem; }
+
+  /* Modals */
+  #viewAllModal > div,
+  #fullReportModal > div,
+  #deleteConfirmModal > div {
+    margin: 1rem;
+    padding: 1.25rem;
+  }
 
   /* Footer */
   .footer-bottom {
@@ -2558,7 +2590,7 @@ a:focus-visible {
 }
 
 /* ============================================================
-   32. RESPONSIVE — SMALL MOBILE (≤ 480px)
+   32. RESPONSIVE - SMALL MOBILE (≤ 480px)
    ============================================================ */
 @media (max-width: 480px) {
 
@@ -2592,7 +2624,7 @@ a:focus-visible {
 }
 
 /* ================================================================
-   FEATURE 8 — Curriculum Tagging Styles
+   FEATURE 8 - Curriculum Tagging Styles
    ================================================================ */
 
 .course-code-badge {
@@ -2622,19 +2654,36 @@ a:focus-visible {
 
 @media print {
   body > *:not(#printSheet) { display: none !important; }
-  body > *:not(#printSheet) { display: none !important; }
   #printSheet {
     display: block !important;
     font-family: Georgia, serif;
     color: #000;
-    padding: 2cm;
+    padding: 1.5cm 2cm;
     max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
   }
-  #printSheet h1 { font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 0.4rem; }
-  #printSheet h2 { font-size: 1.1rem; margin-top: 1.2rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+  #printSheet h1 { font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 0.4rem; page-break-after: avoid; }
+  #printSheet h2 { font-size: 1.1rem; margin-top: 1.2rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; page-break-after: avoid; }
   #printSheet .ps-meta { font-size: 0.85rem; color: #555; margin-bottom: 1rem; }
-  #printSheet .ps-fc { border: 1px solid #ccc; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem; border-radius: 4px; }
+  #printSheet .ps-fc {
+    border: 1px solid #ccc;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
   #printSheet .ps-fc strong { display: block; margin-bottom: 0.2rem; }
+  #printSheet .ps-term {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
   #printSheet .ps-term dt { font-weight: bold; }
   #printSheet .ps-term dd { margin-left: 1rem; color: #333; }
+  #printSheet dl, #printSheet div, #printSheet p {
+    orphans: 3;
+    widows: 3;
+  }
+  #printSheet h2 + * { page-break-before: avoid; }
 }

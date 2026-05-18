@@ -1,10 +1,10 @@
 """
 ============================================================
-PSU AcadRes — main.py
+PSU AcadRes - main.py
 Intelligent Academic Resource Management System
 Palawan State University · College of Information Technology
 
-Backend API Server — Prototype Phase
+Backend API Server - Prototype Phase
 Stack: FastAPI + Ollama (local LLM) + SQLite + pdfplumber
 ============================================================
 """
@@ -35,7 +35,7 @@ from pydantic import BaseModel
 
 logging.basicConfig(
     level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s — %(message)s",
+    format="[%(asctime)s] %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("psu_acadres")
@@ -177,7 +177,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # prototype — tighten in production
+    allow_origins=["*"],          # prototype - tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -240,7 +240,7 @@ def extract_text(path: Path) -> str:
     return ""
 
 
-MAX_CHUNKS = 3  # hard cap — 3 chunks max for speed
+MAX_CHUNKS = 3  # hard cap - 3 chunks max for speed
 
 def chunk_text(text: str, size: int = CHUNK_SIZE_CHARS, overlap: int = CHUNK_OVERLAP) -> list[str]:
     """
@@ -379,10 +379,10 @@ def build_summary_prompt(text: str, mode: str) -> str:
         [One short paragraph of 3-4 sentences describing the main ideas.]
 
         ## Important Terms
-        - [term] — [definition]
-        - [term] — [definition]
-        - [term] — [definition]
-        - [term] — [definition]
+        - [term] - [definition]
+        - [term] - [definition]
+        - [term] - [definition]
+        - [term] - [definition]
 
         DOCUMENT TEXT:
         {text}
@@ -491,7 +491,7 @@ def parse_json_from_llm(raw: str) -> list:
         except json.JSONDecodeError:
             pass
 
-    # LLM truncated the output — recover all complete {...} objects manually
+    # LLM truncated the output - recover all complete {...} objects manually
     recovered = []
     depth = 0
     obj_start = None
@@ -518,7 +518,7 @@ def parse_json_from_llm(raw: str) -> list:
 
 async def generate_summary_from_chunks(chunks: list[str], mode: str, model: str) -> str:
     """
-    Summarise using only the first chunk — tight input so output doesn't get cut off.
+    Summarise using only the first chunk - tight input so output doesn't get cut off.
     """
     combined_text = chunks[0][:1000]
     prompt = build_summary_prompt(combined_text, mode)
@@ -526,7 +526,7 @@ async def generate_summary_from_chunks(chunks: list[str], mode: str, model: str)
 
 
 async def generate_flashcards_from_chunks(chunks: list[str], model: str) -> list[dict]:
-    """Generate flashcards — auto-correct common LLM JSON mistakes."""
+    """Generate flashcards - auto-correct common LLM JSON mistakes."""
     combined = chunks[0][:1000]
     prompt = build_flashcard_prompt(combined)
     raw    = await ollama_generate(prompt, model, max_tokens=1000)
@@ -544,7 +544,7 @@ async def generate_flashcards_from_chunks(chunks: list[str], model: str) -> list
 
 
 async def generate_quiz_from_chunks(chunks: list[str], model: str) -> list[dict]:
-    """Generate quiz — auto-correct string answers, pad short option lists."""
+    """Generate quiz - auto-correct string answers, pad short option lists."""
     combined  = chunks[0][:1000]
     prompt    = build_quiz_prompt(combined)
     raw       = await ollama_generate(prompt, model, max_tokens=2400)
@@ -637,7 +637,7 @@ def _fallback_flashcards() -> list[dict]:
 
 
 def _fallback_quiz() -> list[dict]:
-    """Return empty list — never show generic fallback quiz."""
+    """Return empty list - never show generic fallback quiz."""
     return []
 
 
@@ -976,7 +976,7 @@ async def get_quiz_attempts(doc_id: str):
 async def reprocess_document(payload: dict):
     """
     Re-trigger AI processing for an already-uploaded document.
-    Identical to /api/summarize — provided as a separate endpoint
+    Identical to /api/summarize - provided as a separate endpoint
     to match the frontend's REPROCESS constant.
     """
     return await summarize_document(payload)
@@ -1257,7 +1257,7 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=False,          # keep False — reload=True restarts the server when
+        reload=False,          # keep False - reload=True restarts the server when
                                # acadres.db is written after AI output is saved,
                                # which drops the in-flight summarize fetch and
                                # causes the browser to reload the page.
