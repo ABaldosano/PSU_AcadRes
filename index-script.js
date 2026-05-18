@@ -1493,6 +1493,8 @@ async refreshDocumentList() {
 
     // Remove any existing study prompt in the AI pane
     document.getElementById('studyTimerPrompt')?.remove();
+    const _restartBtn = document.getElementById('restartTimerBtn');
+    if (_restartBtn) _restartBtn.style.display = 'none';
 
     try {
       const response = await fetch(`${API.DOCUMENTS}/${encodeURIComponent(docId)}`);
