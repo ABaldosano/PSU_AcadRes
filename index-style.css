@@ -1995,10 +1995,22 @@ select:focus {
 .ai-output-card__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   background: var(--bg-surface-2);
   border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: nowrap;
+}
+
+.ai-output-card__header h3 {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-output-card__toggle {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .ai-output-card__icon {
@@ -2582,8 +2594,12 @@ a:focus-visible {
   .analytics-chart-placeholder { overflow-x: auto; }
 
   /* AI output cards */
-  .ai-output-card { padding: var(--space-4); }
-  .ai-output-card__header { gap: var(--space-2); flex-wrap: wrap; }
+.ai-output-card { padding: var(--space-4); }
+
+.ai-output-card__header {
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+}
 
   /* Confidence rating buttons */
   #confidenceButtons { flex-direction: column; }
@@ -2742,12 +2758,12 @@ a:focus-visible {
     break-inside: avoid;
   }
   @page {
-    margin-left: 1in;
+    margin: 0.75in 0.75in 0.75in 0.75in;
   }
 
   body {
-    margin-left: 1in !important;
-    padding-left: 0.25in !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .study-sheet,
@@ -2755,7 +2771,7 @@ a:focus-visible {
   .study-sheet-content,
   .quiz-sheet,
   .flashcard-sheet {
-    margin-left: 0.5in !important;
-    padding-left: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }

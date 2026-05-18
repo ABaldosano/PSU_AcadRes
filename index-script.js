@@ -34,7 +34,6 @@ const LS = {
 THEME:             'psu-acadres-theme',
 ROLE:              'psu-acadres-role',
 UPLOADS:           'psu-acadres-uploads',
-PREFS:             'psu-acadres-prefs',
 AI_STATS:          'psu-acadres-ai-stats',
 PANEL:             'psu-acadres-panel',
 STUDENT_YEAR:      'psu-acadres-student-year',
@@ -48,14 +47,10 @@ SESSION_ID:        'psu-acadres-session-id',
 
 /** API endpoints - FastAPI backend */
 const API = {
-  BASE:          'http://127.0.0.1:8000',
   UPLOAD:        'http://127.0.0.1:8000/api/upload',
   SUMMARIZE:     'http://127.0.0.1:8000/api/summarize',
-  REPROCESS:     'http://127.0.0.1:8000/api/reprocess',
   DOCUMENTS:     'http://127.0.0.1:8000/api/documents',
-  SEARCH:        'http://127.0.0.1:8000/api/search',
   ADMIN:         'http://127.0.0.1:8000/api/admin/stats',
-  HEALTH:        'http://127.0.0.1:8000/api/health',
   QUIZ_ATTEMPT:  'http://127.0.0.1:8000/api/quiz-attempt',
   QUIZ_ATTEMPTS: 'http://127.0.0.1:8000/api/quiz-attempts',
 };
@@ -327,25 +322,6 @@ const StudentProfileController = {
     ViewerController.refreshDocumentList();
   },
 
-  /**
-   * Returns all year/semester combos a student can access
-   * based on their stored profile.
-   */
-  getAccessibleYearSemesters() {
-    const YEAR_ORDER = { '1': 1, '2': 2, '3': 3, '4': 4 };
-    const SEM_ORDER  = { '1': 1, '2': 2, 'summer': 3 };
-    const sy = YEAR_ORDER[this.getStudentYear()] || 0;
-    const ss = SEM_ORDER[this.getStudentSem()]   || 0;
-    const accessible = [];
-    for (const [y, yv] of Object.entries(YEAR_ORDER)) {
-      for (const [s, sv] of Object.entries(SEM_ORDER)) {
-        if (yv < sy || (yv === sy && sv <= ss)) {
-          accessible.push({ year: y, sem: s });
-        }
-      }
-    }
-    return accessible;
-  },
 
   isDocAccessible(doc) {
     if (!doc.yearLevel && !doc.year_level) return true;
@@ -615,7 +591,8 @@ const StudyTimerController = {
     this._docName  = null;
     const badge = document.getElementById('studyTimerBadge');
     if (badge) { badge.style.display = 'none'; badge.textContent = '0:00'; }
-    document.getElementById('stopTimerBtn')?.style && (document.getElementById('stopTimerBtn').style.display = 'none');
+    const _stopBtn = document.getElementById('stopTimerBtn');
+    if (_stopBtn) _stopBtn.style.display = 'none';
     document.getElementById('cancelStudyBtn')?.remove();
   },
 
@@ -929,9 +906,6 @@ apply(role) {
 
 const PanelController = {
 
-  /** All panel IDs mapped to their section elements */
-  _panels: null,
-
   _getPanel(id) {
     return document.getElementById(`panel-${id}`);
   },
@@ -1113,7 +1087,6 @@ const UploadController = {
       return;
     }
     this._file = file;
-    AppState.selectedFile = file;
     this._renderPreview(file);
   },
 
@@ -1296,7 +1269,6 @@ const UploadController = {
 
   _clearUpload() {
     this._file = null;
-    AppState.selectedFile = null;
 
     const fileInput = document.getElementById('fileInput');
     if (fileInput) fileInput.value = '';
@@ -1435,10 +1407,7 @@ async refreshDocumentList() {
           .then(() => showToast('Text copied to clipboard.', 'success'))
           .catch(()  => showToast('Copy failed - please select text manually.', 'warning'));
       }
-
-      
     });
-    
   },
 
   _switchTab(tabId) {
@@ -2066,9 +2035,9 @@ _copyOutput() {
 
     const printStyles = `
       <style>
-        @page { size: A4; margin: 1.5cm 2cm; }
+        @page { size: A4; margin: 3cm 3.5cm 3cm 3.5cm; }
         * { box-sizing: border-box; }
-        body { font-family: Georgia, serif; font-size: 11pt; color: #000; margin: 0; padding: 0; }
+        body { font-family: Georgia, serif; font-size: 11pt; color: #000; margin: 0; padding: 1cm 1cm; }
         h1 { font-size: 1.3rem; margin: 0 0 0.25rem; border-bottom: 2px solid #000; padding-bottom: 0.3rem; }
         h2 { font-size: 1.05rem; margin: 1.1rem 0 0.4rem; border-bottom: 1.5px solid #ccc; padding-bottom: 0.2rem; page-break-after: avoid; break-after: avoid; }
         h3 { font-size: 0.95rem; margin: 0.8rem 0 0.25rem; page-break-after: avoid; break-after: avoid; }
@@ -2603,7 +2572,6 @@ const AdminController = {
     const stats = await ApiService.fetchAdminStats();
     this._renderStats(stats);
     this._initCharts();
-    this._cacheFileRows();
     this._bindModerationActions();
   },
 
@@ -2760,9 +2728,6 @@ _renderStats(stats) {
       row.style.display = (!q || text.includes(q)) ? '' : 'none';
     });
   },
-
-  
-
   _bindModerationActions() {
 
     if (this._moderationBound) return;
@@ -2976,7 +2941,6 @@ function initApp() {
     '%cPSU AcadRes - Frontend Interaction Layer loaded.',
     'color:#1a5ef9;font-weight:600;'
   );
-  console.info('State:', AppState);
 }
 
 // Boot after DOM is ready

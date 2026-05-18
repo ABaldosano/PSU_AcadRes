@@ -47,10 +47,9 @@ log = logging.getLogger("psu_acadres")
 BASE_DIR       = Path(__file__).parent
 UPLOAD_DIR     = BASE_DIR / "uploads"
 STORAGE_DIR    = BASE_DIR / "storage"
-GENERATED_DIR  = BASE_DIR / "generated"
 DB_PATH        = STORAGE_DIR / "acadres.db"
 
-for d in (UPLOAD_DIR, STORAGE_DIR, GENERATED_DIR):
+for d in (UPLOAD_DIR, STORAGE_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 # ============================================================
@@ -1078,54 +1077,6 @@ async def list_documents(
     return ok({"documents": filtered, "count": len(filtered)})
 
 
-# ---- Accessible documents by year/semester ----
-
-@app.get("/api/documents/accessible", tags=["Documents"])
-async def accessible_documents(
-    year_level:  str = Query(default=""),
-    semester:    str = Query(default=""),
-    uploader_id: str = Query(default=""),
-):
-    """
-    Return documents accessible to a student, enforcing visibility and ownership.
-    Students receive: own uploads + public_academic faculty uploads within year/sem range.
-    """
-    YEAR_ORDER = {"1": 1, "2": 2, "3": 3, "4": 4}
-    SEM_ORDER  = {"1": 1, "2": 2, "summer": 3}
-
-    student_year = YEAR_ORDER.get(year_level, 0)
-    student_sem  = SEM_ORDER.get(semester, 0)
-
-    with get_db() as conn:
-        rows = conn.execute("SELECT * FROM documents ORDER BY uploaded_at DESC").fetchall()
-
-    accessible = []
-    for row in rows:
-        doc      = dict(row)
-        vis      = doc.get("visibility", "private_student")
-        doc_uid  = doc.get("uploader_id", "")
-        doc_role = (doc.get("uploader_role") or "student").lower()
-
-        if vis in ("private_admin", "private_faculty"):
-            continue
-        if doc_role == "student" and doc_uid != uploader_id:
-            continue
-
-        doc_year = YEAR_ORDER.get(doc.get("year_level", ""), 0)
-        doc_sem  = SEM_ORDER.get(doc.get("semester", ""), 0)
-
-        if doc_year == 0 or doc_sem == 0:
-            accessible.append(doc)
-            continue
-        if doc_year < student_year:
-            accessible.append(doc)
-            continue
-        if doc_year == student_year and doc_sem <= student_sem:
-            accessible.append(doc)
-
-    return ok({"documents": accessible, "count": len(accessible)})
-
-
 # ---- Document detail + AI output ----
 
 @app.get("/api/documents/{doc_id}", tags=["Documents"])
@@ -1203,13 +1154,11 @@ async def admin_stats():
             "SELECT subject, COUNT(*) as cnt FROM documents GROUP BY subject"
         ).fetchall()
 
-    subject_breakdown = {r["subject"]: r["cnt"] for r in subject_rows}
-
-    with get_db() as conn:
-        role_rows = conn.execute(
+    role_rows = conn.execute(
             "SELECT uploader_role, COUNT(*) as cnt FROM documents GROUP BY uploader_role"
         ).fetchall()
 
+    subject_breakdown = {r["subject"]: r["cnt"] for r in subject_rows}
     role_breakdown = {(r["uploader_role"] or "unknown"): r["cnt"] for r in role_rows}
 
     return ok({
