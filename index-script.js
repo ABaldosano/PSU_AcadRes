@@ -2310,7 +2310,7 @@ const DashboardController = {
       return;
     }
 
-    // Sync aiStatus from backend - abort after 4s so dashboard never hangs
+    // Sync from backend - abort after 4s so dashboard never hangs
     try {
       const ctrl = new AbortController();
       const tid  = setTimeout(() => ctrl.abort(), 4000);
@@ -2322,8 +2322,30 @@ const DashboardController = {
         let changed = false;
         backendDocs.forEach(bd => {
           const local = AppState.uploadedFiles.find(f => f.id === bd.id);
-          if (local && local.aiStatus !== bd.ai_status) {
-            local.aiStatus = bd.ai_status;
+          if (local) {
+            if (local.aiStatus !== bd.ai_status) {
+              local.aiStatus = bd.ai_status;
+              changed = true;
+            }
+          } else {
+            // Document exists on backend but not in localStorage - add it
+            AppState.uploadedFiles.push({
+              id:           bd.id,
+              name:         bd.filename,
+              type:         (bd.file_type || 'PDF').toUpperCase(),
+              size:         bd.file_size ? `${(bd.file_size/1024).toFixed(1)} KB` : '-',
+              subject:      bd.subject || 'Untagged',
+              yearLevel:    bd.year_level || '',
+              semester:     bd.semester || '',
+              aiMode:       bd.ai_mode || 'simple',
+              courseCode:   bd.course_code || '',
+              competency:   '',
+              uploadedAt:   bd.uploaded_at || new Date().toISOString(),
+              aiStatus:     bd.ai_status || 'pending',
+              uploaderRole: bd.uploader_role || 'student',
+              uploaderId:   bd.uploader_id || '',
+              visibility:   bd.visibility || 'private_student',
+            });
             changed = true;
           }
         });
