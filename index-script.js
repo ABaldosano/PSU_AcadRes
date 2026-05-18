@@ -2315,9 +2315,12 @@ const DashboardController = {
       return;
     }
 
-    // Sync aiStatus from backend for all local entries
+    // Sync aiStatus from backend - abort after 4s so dashboard never hangs
     try {
-      const resp = await fetch(API.DOCUMENTS);
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 4000);
+      const resp = await fetch(API.DOCUMENTS, { signal: ctrl.signal });
+      clearTimeout(tid);
       if (resp.ok) {
         const json = await resp.json();
         const backendDocs = json.data?.documents || [];
@@ -2331,7 +2334,7 @@ const DashboardController = {
         });
         if (changed) AppState.saveUploads();
       }
-    } catch { /* backend unavailable - use cached statuses */ }
+    } catch { /* backend unavailable or timed out - use cached statuses */ }
 
     const typeIcon = { PDF: '[PDF]', DOCX: '[DOCX]', PPTX: '[PPTX]', TXT: '[TXT]' };
     const relativeTime = iso => {
