@@ -1381,35 +1381,15 @@ async refreshDocumentList() {
       this._buildPrintSheet(sel.value);
     });
 
-    // Stop timer button
+    // Stop timer button - handled inside _showStudyControls via freshStop listener
+    // This fallback handles any direct clicks on the static HTML stopTimerBtn
     document.getElementById('stopTimerBtn')?.addEventListener('click', () => {
       StudyTimerController.stop();
-      document.getElementById('stopTimerBtn').style.display = 'none';
+      const stopBtn = document.getElementById('stopTimerBtn');
+      if (stopBtn) stopBtn.style.display = 'none';
       document.getElementById('cancelStudyBtn')?.remove();
       const badge = document.getElementById('studyTimerBadge');
       if (badge) badge.style.display = 'none';
-      // Show "Start Timer" button to allow restart
-      const stopBtn = document.getElementById('stopTimerBtn');
-      const timerArea = stopBtn?.parentElement;
-      if (timerArea && !document.getElementById('restartTimerBtn')) {
-        const restartBtn = document.createElement('button');
-        restartBtn.id        = 'restartTimerBtn';
-        restartBtn.type      = 'button';
-        restartBtn.className = 'btn btn--ghost btn--sm';
-        restartBtn.style.fontSize = '0.75rem';
-        restartBtn.textContent = '⏱ Start Timer';
-        timerArea.appendChild(restartBtn);
-        restartBtn.addEventListener('click', () => {
-          restartBtn.remove();
-          const sel = document.getElementById('viewerDocSelect');
-          const docId = sel?.value;
-          if (!docId) return;
-          const cached = AppState.aiOutputCache[docId];
-          const fileObj = AppState.uploadedFiles.find(f => f.id === docId) || {};
-          const doc = { id: docId, filename: fileObj.name || docId, aiOutput: cached || {} };
-          ViewerController._showStudyTimerPrompt(docId, doc);
-        });
-      }
     });
 
     // Show stop button when timer badge appears
@@ -1605,15 +1585,17 @@ async refreshDocumentList() {
 
     cancelBtn?.addEventListener('click', () => {
       prompt.remove();
-      // Still show AI outputs, just no timer
       this._renderAiOutputs(doc);
+      this._injectRestartTimerBtn(docId, doc);
     });
   },
 
   _showStudyControls(docId, doc) {
-    const badge   = document.getElementById('studyTimerBadge');
-    const stopBtn = document.getElementById('stopTimerBtn');
-    if (badge)   badge.style.display = '';
+    const badge      = document.getElementById('studyTimerBadge');
+    const stopBtn    = document.getElementById('stopTimerBtn');
+    const restartBtn = document.getElementById('restartTimerBtn');
+    if (badge)      badge.style.display = '';
+    if (restartBtn) restartBtn.style.display = 'none';
 
     // Replace stop button with Stop Timer + Cancel Study
     const timerArea = stopBtn?.parentElement;
@@ -1633,6 +1615,7 @@ async refreshDocumentList() {
           cancelStudy.remove();
           if (stopBtn) stopBtn.style.display = 'none';
           if (badge)   badge.style.display   = 'none';
+          ViewerController._injectRestartTimerBtn(docId, doc);
         });
       }
     }
@@ -1646,8 +1629,28 @@ async refreshDocumentList() {
         freshStop.style.display = 'none';
         if (badge) badge.style.display = 'none';
         document.getElementById('cancelStudyBtn')?.remove();
+        ViewerController._injectRestartTimerBtn(docId, doc);
       });
     }
+  },
+
+  _injectRestartTimerBtn(docId, doc) {
+    const restartBtn = document.getElementById('restartTimerBtn');
+    if (!restartBtn) return;
+    // Strip old listeners by cloning
+    const fresh = restartBtn.cloneNode(true);
+    restartBtn.replaceWith(fresh);
+    fresh.style.display = '';
+    fresh.addEventListener('click', () => {
+      fresh.style.display = 'none';
+      const sel     = document.getElementById('viewerDocSelect');
+      const dId     = docId || sel?.value;
+      if (!dId) return;
+      const cached  = AppState.aiOutputCache[dId];
+      const fileObj = AppState.uploadedFiles.find(f => f.id === dId) || {};
+      const freshDoc = doc || { id: dId, filename: fileObj.name || dId, aiOutput: cached || {} };
+      this._showStudyTimerPrompt(dId, freshDoc);
+    });
   },
 
   _renderAiOutputs(doc) {
@@ -2013,20 +2016,21 @@ _copyOutput() {
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n{2,}/g, '</p><p style="margin:0.4rem 0;">')
         .replace(/\n/g, '<br>');
-      html += `<h2>Summary</h2><div style="font-size:0.9rem;line-height:1.7;"><p style="margin:0;">${printSummary}</p></div>`;
+      html += `<div class="ps-section"><h2>Summary</h2><div style="font-size:0.9rem;line-height:1.7;"><p style="margin:0;">${printSummary}</p></div></div>`;
     }
     if (cached.glossary?.length) {
-      html += `<h2>Key Terms Glossary</h2><dl>`;
+      html += `<div class="ps-section"><h2>Key Terms Glossary</h2><dl>`;
       cached.glossary.forEach(t => {
         html += `<div class="ps-term"><dt>${escapeHtml(t.term)}</dt><dd>${escapeHtml(t.definition)}</dd></div>`;
       });
-      html += `</dl>`;
+      html += `</dl></div>`;
     }
     if (cached.flashcards?.length) {
-      html += `<h2>Flashcards</h2>`;
+      html += `<div class="ps-section"><h2>Flashcards</h2>`;
       cached.flashcards.forEach((c, i) => {
-        html += `<div class="ps-fc"><strong>Q${i+1}: ${escapeHtml(c.front || c.question || '')}</strong>${escapeHtml(c.back || c.answer || '')}</div>`;
+        html += `<div class="ps-fc"><strong>Q${i+1}: ${escapeHtml(c.front || c.question || '')}</strong><br>${escapeHtml(c.back || c.answer || '')}</div>`;
       });
+      html += `</div>`;
     }
 
     if (!cached.summary && !cached.flashcards?.length && !cached.glossary?.length) {
@@ -2034,7 +2038,23 @@ _copyOutput() {
     }
 
     // Inject into body-level sheet; CSS @media print hides everything else
-    sheet.innerHTML = html;
+    sheet.innerHTML = `
+      <style>
+        @media print {
+          #printSheet { display: block !important; }
+          #printSheet h1 { font-size: 1.3rem; margin: 0 0 0.25rem; }
+          #printSheet h2 { font-size: 1.05rem; margin: 1.1rem 0 0.4rem; border-bottom: 1.5px solid #ccc; padding-bottom: 0.2rem; page-break-after: avoid; }
+          #printSheet h3 { font-size: 0.95rem; margin: 0.8rem 0 0.25rem; page-break-after: avoid; }
+          #printSheet .ps-section { page-break-inside: avoid; }
+          #printSheet .ps-term { page-break-inside: avoid; margin-bottom: 0.4rem; }
+          #printSheet .ps-fc { page-break-inside: avoid; margin-bottom: 0.5rem; }
+          #printSheet dl { margin: 0; padding: 0; }
+          #printSheet dt { font-weight: 700; }
+          #printSheet dd { margin-left: 1rem; margin-bottom: 0.3rem; }
+          #printSheet .ps-meta { font-size: 0.78rem; color: #555; margin-bottom: 0.75rem; }
+        }
+      </style>
+      ${html}`;
     sheet.style.display = 'block';
     sheet.removeAttribute('aria-hidden');
 
@@ -2133,6 +2153,7 @@ _showConfidencePanel(score, maxScore, pct) {
     const panel = document.getElementById('confidenceRatingPanel');
     if (!panel) return;
     panel.style.display = '';
+    panel.style.paddingBottom = '1.5rem';
     const advisory = document.getElementById('confidenceAdvisory');
     if (advisory) { advisory.style.display = 'none'; advisory.textContent = ''; }
 
