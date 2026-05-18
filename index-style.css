@@ -1954,7 +1954,7 @@ select:focus {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   box-shadow: var(--card-shadow);
-  overflow: hidden;
+  overflow: visible;
   transition: box-shadow var(--transition-base);
 }
 
@@ -2662,10 +2662,16 @@ a:focus-visible {
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
+    overflow: visible;
   }
-  #printSheet h1 { font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 0.4rem; page-break-after: avoid; }
-  #printSheet h2 { font-size: 1.1rem; margin-top: 1.2rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; page-break-after: avoid; }
+  #printSheet h1 { font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 0.4rem; page-break-after: avoid; break-after: avoid; }
+  #printSheet h2 { font-size: 1.1rem; margin-top: 1.2rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; page-break-after: avoid; break-after: avoid; }
   #printSheet .ps-meta { font-size: 0.85rem; color: #555; margin-bottom: 1rem; }
+  #printSheet .ps-section {
+    page-break-inside: auto;
+    break-inside: auto;
+    margin-bottom: 1.2rem;
+  }
   #printSheet .ps-fc {
     border: 1px solid #ccc;
     padding: 0.6rem 0.9rem;
@@ -2678,12 +2684,34 @@ a:focus-visible {
   #printSheet .ps-term {
     page-break-inside: avoid;
     break-inside: avoid;
+    margin-bottom: 0.4rem;
   }
   #printSheet .ps-term dt { font-weight: bold; }
   #printSheet .ps-term dd { margin-left: 1rem; color: #333; }
-  #printSheet dl, #printSheet div, #printSheet p {
+  #printSheet dl {
+    page-break-inside: auto;
+    break-inside: auto;
     orphans: 3;
     widows: 3;
   }
-  #printSheet h2 + * { page-break-before: avoid; }
+  #printSheet p {
+    orphans: 3;
+    widows: 3;
+  }
+  #printSheet h2 + * { page-break-before: avoid; break-before: avoid; }
+  #printSheet ul, #printSheet ol {
+    page-break-inside: auto;
+    break-inside: auto;
+    orphans: 3;
+    widows: 3;
+  }
+  #printSheet ul > li,
+  #printSheet ol > li {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4;
+  }
 }

@@ -2037,36 +2037,34 @@ _copyOutput() {
       html += `<p style="color:#888;">No AI output available for this document yet. Run AI processing first.</p>`;
     }
 
-    // Inject into body-level sheet; CSS @media print hides everything else
-    sheet.innerHTML = `
+    const printStyles = `
       <style>
-        @media print {
-          #printSheet { display: block !important; }
-          #printSheet h1 { font-size: 1.3rem; margin: 0 0 0.25rem; }
-          #printSheet h2 { font-size: 1.05rem; margin: 1.1rem 0 0.4rem; border-bottom: 1.5px solid #ccc; padding-bottom: 0.2rem; page-break-after: avoid; }
-          #printSheet h3 { font-size: 0.95rem; margin: 0.8rem 0 0.25rem; page-break-after: avoid; }
-          #printSheet .ps-section { page-break-inside: avoid; }
-          #printSheet .ps-term { page-break-inside: avoid; margin-bottom: 0.4rem; }
-          #printSheet .ps-fc { page-break-inside: avoid; margin-bottom: 0.5rem; }
-          #printSheet dl { margin: 0; padding: 0; }
-          #printSheet dt { font-weight: 700; }
-          #printSheet dd { margin-left: 1rem; margin-bottom: 0.3rem; }
-          #printSheet .ps-meta { font-size: 0.78rem; color: #555; margin-bottom: 0.75rem; }
-        }
-      </style>
-      ${html}`;
-    sheet.style.display = 'block';
-    sheet.removeAttribute('aria-hidden');
+        @page { size: A4; margin: 1.5cm 2cm; }
+        * { box-sizing: border-box; }
+        body { font-family: Georgia, serif; font-size: 11pt; color: #000; margin: 0; padding: 0; }
+        h1 { font-size: 1.3rem; margin: 0 0 0.25rem; border-bottom: 2px solid #000; padding-bottom: 0.3rem; }
+        h2 { font-size: 1.05rem; margin: 1.1rem 0 0.4rem; border-bottom: 1.5px solid #ccc; padding-bottom: 0.2rem; page-break-after: avoid; break-after: avoid; }
+        h3 { font-size: 0.95rem; margin: 0.8rem 0 0.25rem; page-break-after: avoid; break-after: avoid; }
+        .ps-meta { font-size: 0.78rem; color: #555; margin-bottom: 0.75rem; }
+        .ps-section { margin-bottom: 1rem; page-break-inside: auto; break-inside: auto; }
+        .ps-term { page-break-inside: avoid; break-inside: avoid; margin-bottom: 0.4rem; }
+        .ps-fc { border: 1px solid #ccc; padding: 0.5rem 0.8rem; margin-bottom: 0.5rem; border-radius: 4px; page-break-inside: avoid; break-inside: avoid; }
+        dl { margin: 0; padding: 0; page-break-inside: auto; break-inside: auto; }
+        dt { font-weight: 700; }
+        dd { margin-left: 1rem; margin-bottom: 0.3rem; orphans: 3; widows: 3; }
+        p { orphans: 3; widows: 3; }
+        li { page-break-inside: avoid; break-inside: avoid; }
+        ul, ol { page-break-inside: auto; break-inside: auto; orphans: 3; widows: 3; }
+      </style>`;
 
-    // Brief delay so DOM settles before browser print dialog opens
+    const printWin = window.open('', '_blank', 'width=800,height=600');
+    printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Study Sheet</title>${printStyles}</head><body>${html}</body></html>`);
+    printWin.document.close();
+    printWin.focus();
     setTimeout(() => {
-      window.print();
-      // After print dialog closes, hide the sheet again
-      setTimeout(() => {
-        sheet.style.display = 'none';
-        sheet.setAttribute('aria-hidden', 'true');
-      }, 500);
-    }, 120);
+      printWin.print();
+      printWin.close();
+    }, 300);
   },
 
   _renderDifficultyBadge(docId, difficulty, rationale) {
