@@ -2756,6 +2756,6 @@ a:focus-visible {
   .quiz-sheet,
   .flashcard-sheet {
     margin-left: 0.5in !important;
-    padding-left: 0 !important;
+    padding-left: 1 !important;
   }
 }
