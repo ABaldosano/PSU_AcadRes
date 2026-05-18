@@ -1203,7 +1203,6 @@ const UploadController = {
       const localId = 'local-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
       const entry = {
         id:           localId,
-        id:           fileId,
         name:         this._file.name,
         type:         getFileLabel(this._file),
         size:         formatBytes(this._file.size),
