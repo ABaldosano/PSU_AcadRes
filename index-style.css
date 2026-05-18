@@ -2742,7 +2742,20 @@ a:focus-visible {
     break-inside: avoid;
   }
   @page {
-    margin: 1.5cm 2cm;
-    size: A4;
+    margin-left: 1in;
+  }
+
+  body {
+    margin-left: 1in !important;
+    padding-left: 0.25in !important;
+  }
+
+  .study-sheet,
+  .printable-study-sheet,
+  .study-sheet-content,
+  .quiz-sheet,
+  .flashcard-sheet {
+    margin-left: 0.5in !important;
+    padding-left: 0 !important;
   }
 }
