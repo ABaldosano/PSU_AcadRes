@@ -1198,12 +1198,10 @@ const UploadController = {
       formData.append('visibility',     visibility);
 
       this._setProgressBar(50);
-      const result = await ApiService.uploadDocument(formData);
-
-      const fileId = result.fileId;
+      const localFileId = 'local-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
 
       const entry = {
-        id:           fileId,
+        id:           localFileId,
         name:         this._file.name,
         type:         getFileLabel(this._file),
         size:         formatBytes(this._file.size),
@@ -1226,6 +1224,18 @@ const UploadController = {
       };
       AppState.uploadedFiles.unshift(entry);
       AppState.saveUploads();
+
+      let fileId = localFileId;
+      try {
+        const result = await ApiService.uploadDocument(formData);
+        if (result.fileId && result.fileId !== localFileId) {
+          entry.id = result.fileId;
+          fileId   = result.fileId;
+          AppState.saveUploads();
+        }
+      } catch {
+        /* backend unavailable - keep local entry, skip AI pipeline */
+      }
 
       this._setProgressBar(80);
       this._setProgressLabel('Refreshing document list…');
