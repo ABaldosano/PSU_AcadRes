@@ -156,7 +156,8 @@ body {
   line-height: 1.65;
   color: var(--text-primary);
   background-color: var(--bg-page);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 img, svg {
@@ -780,11 +781,15 @@ select:focus {
    ============================================================ */
 .panels-wrapper {
   margin-top: var(--navbar-height);
-  min-height: calc(100vh - var(--navbar-height));
+  height: calc(100vh - var(--navbar-height));
+  overflow-y: auto;
 }
 
 .panels-container {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* All panels */
@@ -834,6 +839,7 @@ select:focus {
   min-height: calc(100vh - var(--navbar-height));
   background: var(--hero-bg);
   max-width: 100%;
+  margin-inline: 0;
   position: relative;
   overflow: hidden;
 }
@@ -991,8 +997,24 @@ select:focus {
    12. ROLE SELECTION
    ============================================================ */
 .panel--roles {
-  padding-top: var(--space-12);
-  padding-bottom: var(--space-12);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+
+.panel--dashboard {
+  max-width: none;
+}
+
+.panel--student-setup {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.panel--student-setup.panel--active {
+  display: flex;
 }
 
 .role-cards {
@@ -1101,7 +1123,7 @@ select:focus {
    ============================================================ */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -2514,6 +2536,7 @@ a:focus-visible {
 
   /* Role cards */
   .role-cards { grid-template-columns: 1fr; }
+  .role-cards .role-card--featured { order: -1; }
 
   /* Stats */
   .stats-row { grid-template-columns: 1fr 1fr; }

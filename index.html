@@ -177,32 +177,16 @@
            ============================================================== -->
       <section class="panel panel--roles" id="panel-role-select" aria-label="Role selection">
         <header class="panel-header">
-          <h2>Select Your Role</h2>
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2);">
+            <button class="btn btn--ghost btn--sm" type="button" data-panel="panel-hero" style="flex-shrink:0;">← Back</button>
+            <h2 style="margin-bottom:0;">Select Your Role</h2>
+          </div>
           <p>Choose how you will be using the system. Your role determines your dashboard view and available actions.</p>
         </header>
 
         <div class="role-cards">
 
-          <div class="role-card" role="button" tabindex="0" data-role="student" aria-label="Select Student role">
-            <div class="role-card__icon" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
-            </div>
-            <h3 class="role-card__title">Student</h3>
-            <p class="role-card__desc">
-              Access uploaded materials, generate AI summaries, create flashcards,
-              and prepare for exams.
-            </p>
-            <ul class="role-card__perms" aria-label="Student permissions">
-              <li>Browse &amp; search materials</li>
-              <li>Upload personal documents</li>
-              <li>Generate summaries &amp; flashcards</li>
-              <li>Take AI-generated quizzes</li>
-            </ul>
-            <button class="btn btn--primary" type="button">Select Student</button>
-          </div>
-
-          <article class="role-card role-card--featured" role="button" tabindex="0" data-role="faculty" aria-label="Select Faculty role">
-            <div class="role-card__badge">Most Used</div>
+          <div class="role-card" role="button" tabindex="0" data-role="faculty" aria-label="Select Faculty role">
             <div class="role-card__icon" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 20h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 9h6M9 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="17" y="7" width="6" height="17" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/></svg>
             </div>
@@ -218,6 +202,25 @@
               <li>View student engagement analytics</li>
             </ul>
             <button class="btn btn--primary" type="button">Select Faculty</button>
+          </div>
+
+          <article class="role-card role-card--featured" role="button" tabindex="0" data-role="student" aria-label="Select Student role">
+            <div class="role-card__badge">Most Used</div>
+            <div class="role-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </div>
+            <h3 class="role-card__title">Student</h3>
+            <p class="role-card__desc">
+              Access uploaded materials, generate AI summaries, create flashcards,
+              and prepare for exams.
+            </p>
+            <ul class="role-card__perms" aria-label="Student permissions">
+              <li>Browse &amp; search materials</li>
+              <li>Upload personal documents</li>
+              <li>Generate summaries &amp; flashcards</li>
+              <li>Take AI-generated quizzes</li>
+            </ul>
+            <button class="btn btn--primary" type="button">Select Student</button>
           </article>
 
           <div class="role-card" role="button" tabindex="0" data-role="admin" aria-label="Select Admin role">
@@ -246,20 +249,20 @@
        SECTION 3b - STUDENT ACADEMIC STANDING SETUP
        ============================================================== -->
   <section class="panel panel--student-setup" id="panel-student-setup" aria-label="Student academic standing setup">
-    <header class="panel-header">
+    <header class="panel-header" style="margin-bottom:0.75rem;">
       <h2>Academic Standing Setup</h2>
       <p>Enter your current academic standing so the system can show you relevant materials.</p>
     </header>
 
-    <div class="role-cards" style="max-width:520px;margin:0 auto;">
-      <div class="role-card" style="width:100%;">
-        <div class="role-card__icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    <div style="max-width:560px;margin:0 auto;">
+      <div class="role-card" style="width:100%;padding:1.25rem 1.5rem;">
+        <div class="role-card__icon" aria-hidden="true" style="margin-bottom:0;">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="10" r="4.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 23c0-4.418 4.03-8 9-8s9 3.582 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
         </div>
         <h3 class="role-card__title">Student Profile</h3>
         <p class="role-card__desc">This information determines which academic materials are accessible to you.</p>
 
-        <div class="form-group" style="margin-top:1rem;">
+        <div class="form-group" style="margin-top:0.5rem;">
           <label for="setupYearLevel">Year Level</label>
           <select id="setupYearLevel" name="setupYearLevel" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
             <option value="">- Select Year Level -</option>
@@ -270,7 +273,7 @@
           </select>
         </div>
 
-        <div class="form-group" style="margin-top:0.75rem;">
+        <div class="form-group" style="margin-top:0.5rem;">
           <label for="setupYearStanding">Year Standing <span style="font-size:0.78rem;color:var(--text-secondary);">(for irregular students)</span></label>
           <select id="setupYearStanding" name="setupYearStanding" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
             <option value="">- Same as Year Level -</option>
@@ -281,7 +284,7 @@
           </select>
         </div>
 
-        <div class="form-group" style="margin-top:0.75rem;">
+        <div class="form-group" style="margin-top:0.5rem;">
           <label for="setupSemester">Current Semester</label>
           <select id="setupSemester" name="setupSemester" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:0.5rem;background:var(--bg-surface);color:var(--text-primary);font-size:0.9rem;">
             <option value="">- Select Semester -</option>
@@ -291,7 +294,7 @@
           </select>
         </div>
 
-        <div style="margin-top:1.25rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem;">
           <button class="btn btn--primary" type="button" id="confirmStudentSetupBtn">Confirm &amp; Enter Dashboard</button>
           <button class="btn btn--ghost" type="button" id="backToRoleSelectBtn">← Back</button>
         </div>

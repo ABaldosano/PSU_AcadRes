@@ -968,6 +968,12 @@ const PanelController = {
     AppState.currentPanel = panelId;
     lsSet(LS.PANEL, panelId);
 
+    const navbar = document.querySelector('.top-navbar');
+    if (navbar) {
+      const hideNav = panelId === 'role-select' || panelId === 'student-setup';
+      navbar.style.display = hideNav ? 'none' : '';
+    }
+
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
