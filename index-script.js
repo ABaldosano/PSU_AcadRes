@@ -2983,6 +2983,58 @@ function initApp() {
     '%cPSU AcadRes - Frontend Interaction Layer loaded.',
     'color:#1a5ef9;font-weight:600;'
   );
+
+  // 6. Auto-seed from backend on every load
+  (async () => {
+    try {
+      const sid = AppState.sessionId || lsGet(LS.SESSION_ID) || '';
+      const docsResp = await fetch(`${API.DOCUMENTS}?role=${(AppState.role || 'student').toLowerCase()}&uploader_id=${sid}`);
+      if (!docsResp.ok) return;
+      const docsJson = await docsResp.json();
+      const docs = docsJson.data?.documents || [];
+      if (!docs.length) return;
+
+      const mapped = docs.map(bd => ({
+        id:           bd.id,
+        name:         bd.filename,
+        type:         (bd.file_type || 'PDF').toUpperCase(),
+        size:         bd.file_size ? `${(bd.file_size / 1024).toFixed(1)} KB` : '-',
+        subject:      bd.subject || 'Untagged',
+        yearLevel:    bd.year_level || '',
+        semester:     bd.semester || '',
+        aiMode:       bd.ai_mode || 'simple',
+        courseCode:   bd.course_code || '',
+        competency:   '',
+        uploadedAt:   bd.uploaded_at || new Date().toISOString(),
+        aiStatus:     bd.ai_status || 'pending',
+        uploaderRole: bd.uploader_role || 'student',
+        uploaderId:   bd.uploader_id || '',
+        visibility:   bd.visibility || 'private_student',
+      }));
+      AppState.uploadedFiles = mapped;
+      AppState.saveUploads();
+
+      const summarized = docs.filter(d => d.ai_status === 'summarized');
+      const flashcardCounts = await Promise.all(
+        summarized.map(d =>
+          fetch(`${API.DOCUMENTS}/${d.id}`)
+            .then(r => r.json())
+            .then(j => j.data?.aiOutput?.flashcards?.length || 0)
+            .catch(() => 0)
+        )
+      );
+      AppState.aiStats = {
+        summaries:  summarized.length,
+        flashcards: flashcardCounts.reduce((a, b) => a + b, 0),
+      };
+      AppState.saveAiStats();
+
+      DashboardController.refresh();
+      await ViewerController.refreshDocumentList();
+      ActivityController.render();
+      PlannerController.render();
+    } catch { /* backend offline - silently skip */ }
+  })();
 }
 
 // Boot after DOM is ready
