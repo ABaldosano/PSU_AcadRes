@@ -1553,30 +1553,46 @@ async refreshDocumentList() {
       </div>`; }
   },
 
-  _showStudyTimerPrompt(docId, doc) {
+  _showStudyTimerPrompt(docId, doc, isRestart = false) {
     const aiPane = document.querySelector('.viewer-pane--ai .viewer-pane__body');
     if (!aiPane) return;
 
-    // Build prompt overlay at top of AI pane
     const existing = document.getElementById('studyTimerPrompt');
     if (existing) existing.remove();
 
     const prompt = document.createElement('div');
     prompt.id = 'studyTimerPrompt';
-    prompt.style.cssText = 'position:absolute;inset:0;z-index:10;background:var(--bg-surface);padding:0 1.5rem 4rem;display:flex;align-items:center;justify-content:center;';
-    prompt.innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;gap:1.25rem;text-align:center;">
+
+    if (isRestart) {
+      // Compact inline banner - does NOT cover content
+      prompt.style.cssText = 'position:relative;z-index:10;background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:0.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;';
+      prompt.innerHTML = `
         <div>
-          <p style="margin:0;font-weight:700;font-size:1rem;">Start Study Timer?</p>
-          <p style="margin:0.35rem 0 0;font-size:0.85rem;color:var(--text-secondary);">Timer tracks your study session analytics.</p>
+          <p style="margin:0;font-weight:700;font-size:0.9rem;">Start Study Timer?</p>
+          <p style="margin:0.2rem 0 0;font-size:0.8rem;color:var(--text-secondary);">Timer tracks your study session analytics.</p>
         </div>
-        <div style="display:flex;gap:0.75rem;">
+        <div style="display:flex;gap:0.5rem;">
           <button id="studyTimerStartBtn" class="btn btn--sm" type="button">Yes</button>
           <button id="studyTimerCancelBtn" class="btn btn--sm" type="button">No</button>
-        </div>
-      </div>`;
-    aiPane.prepend(prompt);
-    aiPane.style.position = 'relative';
+        </div>`;
+      aiPane.prepend(prompt);
+    } else {
+      // Full overlay - shown before AI content is rendered
+      prompt.style.cssText = 'position:absolute;inset:0;z-index:10;background:var(--bg-surface);padding:0 1.5rem 4rem;display:flex;align-items:center;justify-content:center;';
+      prompt.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;gap:1.25rem;text-align:center;">
+          <div>
+            <p style="margin:0;font-weight:700;font-size:1rem;">Start Study Timer?</p>
+            <p style="margin:0.35rem 0 0;font-size:0.85rem;color:var(--text-secondary);">Timer tracks your study session analytics.</p>
+          </div>
+          <div style="display:flex;gap:0.75rem;">
+            <button id="studyTimerStartBtn" class="btn btn--sm" type="button">Yes</button>
+            <button id="studyTimerCancelBtn" class="btn btn--sm" type="button">No</button>
+          </div>
+        </div>`;
+      aiPane.prepend(prompt);
+      aiPane.style.position = 'relative';
+    }
 
     const startBtn  = document.getElementById('studyTimerStartBtn');
     const cancelBtn = document.getElementById('studyTimerCancelBtn');
@@ -1585,14 +1601,17 @@ async refreshDocumentList() {
       prompt.remove();
       StudyTimerController.start(docId, doc.filename || docId);
       this._showStudyControls(docId, doc);
-      // Now reveal AI outputs
-      this._renderAiOutputs(doc);
+      if (!isRestart) this._renderAiOutputs(doc);
     });
 
     cancelBtn?.addEventListener('click', () => {
       prompt.remove();
-      this._renderAiOutputs(doc);
-      this._injectRestartTimerBtn(docId, doc);
+      if (!isRestart) {
+        this._renderAiOutputs(doc);
+        this._injectRestartTimerBtn(docId, doc);
+      } else {
+        this._injectRestartTimerBtn(docId, doc);
+      }
     });
   },
 
@@ -1655,7 +1674,7 @@ async refreshDocumentList() {
       const cached  = AppState.aiOutputCache[dId];
       const fileObj = AppState.uploadedFiles.find(f => f.id === dId) || {};
       const freshDoc = doc || { id: dId, filename: fileObj.name || dId, aiOutput: cached || {} };
-      this._showStudyTimerPrompt(dId, freshDoc);
+      this._showStudyTimerPrompt(dId, freshDoc, true);
     });
   },
 

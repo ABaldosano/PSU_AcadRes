@@ -796,7 +796,8 @@ select:focus {
 .panel {
   display: none;
   padding: var(--space-8) var(--space-6);
-  max-width: 1280px;
+  width: 100%;
+  max-width: 1680px;
   margin-inline: auto;
   animation: panel-fade-in 0.28s ease;
 }
@@ -815,6 +816,7 @@ select:focus {
 /* Panel headers */
 .panel-header {
   margin-bottom: var(--space-8);
+  text-align: center;
 }
 
 .panel-header h2 {
@@ -835,7 +837,7 @@ select:focus {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: var(--space-12);
-  padding: var(--space-16) var(--space-6);
+  padding: var(--space-8) var(--space-6) var(--space-6);
   min-height: calc(100vh - var(--navbar-height));
   background: var(--hero-bg);
   max-width: 100%;
@@ -971,6 +973,8 @@ select:focus {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 100%;
+  padding-right: 15rem;
 }
 
 .hero-visual-placeholder {
@@ -1001,8 +1005,10 @@ select:focus {
   padding-bottom: var(--space-6);
 }
 
-.panel--dashboard {
-  max-width: none;
+.panel--dashboard,
+#panel-viewer {
+  width: 100%;
+  max-width: 1680px;
 }
 
 .panel--student-setup {
@@ -1186,8 +1192,9 @@ select:focus {
    ============================================================ */
 .dashboard-body {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   gap: var(--space-6);
+  width: 100%;
 }
 
 .dashboard-col {
@@ -1815,6 +1822,7 @@ select:focus {
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  min-width: 0;
 }
 
 .viewer-pane__header {
@@ -2681,7 +2689,7 @@ a:focus-visible {
     display: block !important;
     font-family: Georgia, serif;
     color: #000;
-    padding: 1.5cm 2cm;
+    padding: 0;
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
