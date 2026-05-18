@@ -1198,11 +1198,11 @@ const UploadController = {
       formData.append('visibility',     visibility);
 
       this._setProgressBar(50);
-      const result = await ApiService.uploadDocument(formData);
 
-      const fileId = result.fileId;
-
+      // Save to localStorage immediately — works even without backend
+      const localId = 'local-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
       const entry = {
+        id:           localId,
         id:           fileId,
         name:         this._file.name,
         type:         getFileLabel(this._file),
@@ -1226,6 +1226,7 @@ const UploadController = {
       };
       AppState.uploadedFiles.unshift(entry);
       AppState.saveUploads();
+      DashboardController.refresh();
 
       this._setProgressBar(80);
       this._setProgressLabel('Refreshing document list…');
@@ -1233,29 +1234,31 @@ const UploadController = {
       await ViewerController.refreshDocumentList();
 
       this._setProgressBar(100);
-      this._setProgressLabel('Upload complete! Starting AI processing…');
+      this._setProgressLabel('Upload complete!');
 
       const uploadedFileName = this._file.name;
       this._clearUpload();
 
-      // Route to viewer and auto-select the new doc BEFORE AI processing
-      PanelController.show('viewer');
-      const sel = document.getElementById('viewerDocSelect');
-      if (sel) {
-        sel.value = fileId;
-        // Trigger load to show doc metadata while AI runs
-        await ViewerController._loadDocument(fileId);
-      }
-
-      showToast('File uploaded! AI is now processing…', 'success');
+      showToast('File saved locally!', 'success');
       ActivityController.log(`Uploaded "${uploadedFileName}"`, 'upload');
 
-      // Release upload-button lock before long AI call
+      // Try backend — optional, non-blocking
+      let fileId = localId;
+      try {
+        const result = await ApiService.uploadDocument(formData);
+        if (result?.fileId) {
+          entry.id = result.fileId;
+          fileId   = result.fileId;
+          AppState.saveUploads();
+        }
+      } catch { /* no backend — local save is enough */ }
+
       AppState.isProcessing = false;
       if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-right:0.35rem;"><path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11.5v1a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Upload &amp; Process with AI'; }
 
-      // Auto-trigger full AI pipeline immediately
-      await ViewerController._triggerAiProcess(fileId);
+      PanelController.show('viewer');
+      const sel = document.getElementById('viewerDocSelect');
+      if (sel) { sel.value = fileId; }
 
     } catch (err) {
       console.error('[Upload Error]', err);
